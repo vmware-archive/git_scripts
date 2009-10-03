@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+
+# Configures the git author to a list of developers when pair programming,
+# alphabetized on first name
+# 
+# Usage: git pair ls gw (Sets the author to 'Greg Woodward & Loren Siebert')
+#        git pair       (Unsets the author so the git global config takes effect)
+# 
+# Orginal Author: Bryan Helmkamp (http://brynary.com)
+
+#######################################################################
+
+require 'yaml'
+
+## Configuration
+
+def normalize(name)
+  (first, last) = name.split(' ')
+  first.downcase.gsub(' ', '.')
+end
+
+def find_author_list
+  pairs_file_path = nil
+  until pairs_file_path || Dir.pwd == File.expand_path('/') do
+    if File.exists?(".pairs")
+      pairs_file_path = File.expand_path(".pairs")
+    else
+      Dir.chdir ".."
+    end
+  end
+  pairs_file_path ? YAML.load_file(".pairs") : {}
+end
+
+## End of configuration
+#######################################################################
+
+unless File.exists?(".git")
+  puts "This doesn't look like a git repository."
+  exit 1
+end
+
+author_list = find_author_list
+authors = ARGV.map do |initials|
+  if author_list[initials.downcase]
+    author_list[initials.downcase]
+  else
+    puts "Couldn't find author name for initials: #{initials}"
+    exit 1
+  end
+end
+
+if authors.any?
+  authors.sort!.uniq!
+  names, emails = authors.collect {|a| a.split(";").collect {|s| s.strip} }.transpose
+  if authors.size == 1
+    email   = emails.first
+    authors = names.first
+  elsif authors.size == 2
+    email   = 'pair+' + emails.join('+')
+    authors = names.join(" & ")
+  else
+    email   = 'pair+' + emails.join('+')
+    authors = names[0..-2].join(", ") + " & " + names.last
+  end
+  `git config --global user.name '#{authors}'`
+  `git config --global user.email '#{email}'@pivotallabs.com`
+else
+  `git config --global --unset user.name`
+  `git config --global --unset user.email`
+  puts "Unset user.name and user.email"
+end
+puts `git config -l | grep user | tail -2`
