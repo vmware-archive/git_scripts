@@ -28,6 +28,17 @@ def find_author_list
       Dir.chdir ".."
     end
   end
+  unless pairs_file_path
+    puts <<-INSTRUCTIONS
+Could not find a .pairs file. Create a YAML file in your project or home directory.
+Format: <initials>: <name>; <email>
+Example:
+eh: Edward Hieatt; edward
+js: Josh Susser; jsusser
+sf: Serguei Filimonov; serguei
+INSTRUCTIONS
+    exit(1)
+  end
   pairs_file_path ? YAML.load_file(".pairs") : {}
 end
 
@@ -44,7 +55,7 @@ authors = ARGV.map do |initials|
   if author_list[initials.downcase]
     author_list[initials.downcase]
   else
-    puts "Couldn't find author name for initials: #{initials}"
+    puts "Couldn't find author name for initials: #{initials}. Add this person to the .pairs file in your project or home directory."
     exit 1
   end
 end
