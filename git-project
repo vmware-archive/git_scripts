@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+project = ARGV[0]
+
+id_file = "id_github_pivotal#{project}"
+
+Dir.chdir(File.expand_path('~/.ssh')) do
+  if File.exists?(id_file)
+    `ln -sf #{id_file} id_github_current`
+    if `grep -c id_github_current config`.to_i == 0
+      puts <<-WARNING
+You must edit your .ssh/config file to include:
+  Host github.com
+    User git
+    IdentityFile /Users/pivotal/.ssh/id_github_current
+WARNING
+    end
+  else
+    puts "Key not found. You must create a ssh key at ~/.ssh/#{id_file}"
+  end
+end
