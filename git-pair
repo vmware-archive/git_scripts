@@ -12,14 +12,14 @@
 
 require 'yaml'
 
-## Configuration
-
-def normalize(name)
-  (first, last) = name.split(' ')
-  first.downcase.gsub(' ', '.')
+unless File.exists?(".git")
+  puts "This doesn't look like a git repository."
+  exit 1
 end
 
-def find_author_list
+## Configuration
+
+def get_pairs_config
   pairs_file_path = nil
   until pairs_file_path || Dir.pwd == File.expand_path('/') do
     if File.exists?(".pairs")
@@ -31,11 +31,17 @@ def find_author_list
   unless pairs_file_path
     puts <<-INSTRUCTIONS
 Could not find a .pairs file. Create a YAML file in your project or home directory.
-Format: <initials>: <name>; <email>
+Format: <initials>: <name>[; <email>]
 Example:
-eh: Edward Hieatt; edward
-js: Josh Susser; jsusser
-sf: Serguei Filimonov; serguei
+# .pairs - configuration for 'git pair'
+# place in project or home directory
+pairs:
+  eh: Edward Hieatt
+  js: Josh Susser; jsusser
+  sf: Serguei Filimonov; serguei
+email:
+  prefix: pair
+  domain: pivotallabs.com
 INSTRUCTIONS
     exit(1)
   end
@@ -45,15 +51,10 @@ end
 ## End of configuration
 #######################################################################
 
-unless File.exists?(".git")
-  puts "This doesn't look like a git repository."
-  exit 1
-end
-
-author_list = find_author_list
+config = get_pairs_config
 authors = ARGV.map do |initials|
-  if author_list[initials.downcase]
-    author_list[initials.downcase]
+  if full_name = config['pairs'][initials.downcase]
+    full_name
   else
     puts "Couldn't find author name for initials: #{initials}. Add this person to the .pairs file in your project or home directory."
     exit 1
@@ -62,19 +63,24 @@ end
 
 if authors.any?
   authors.sort!.uniq!
-  names, emails = authors.collect {|a| a.split(";").collect {|s| s.strip} }.transpose
-  if authors.size == 1
-    email   = emails.first
+  names, emails = authors.collect do |a|
+    both = a.split(";").collect {|s| s.strip}
+    both << both[0].split(' ').first.downcase if both.length == 1  # default email to first name
+    both
+  end.transpose
+
+  case authors.size
+  when 1
     authors = names.first
-  elsif authors.size == 2
-    email   = 'pair+' + emails.join('+')
+  when 2
     authors = names.join(" & ")
   else
-    email   = 'pair+' + emails.join('+')
     authors = names[0..-2].join(", ") + " & " + names.last
   end
+  email = ([config['email']['prefix']] + emails).join('+')
+
   `git config --global user.name '#{authors}'`
-  `git config --global user.email '#{email}'@pivotallabs.com`
+  `git config --global user.email '#{email}@#{config['email']['domain']}'`
 else
   `git config --global --unset user.name`
   `git config --global --unset user.email`
