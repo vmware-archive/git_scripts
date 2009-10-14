@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+config = `git config -l`
+user_name = config =~ %r{^user\.name=(.*)$} ? $1 : "NONE"
+user_email = config =~ %r{^user\.email=(.*)$} ? $1 : "NONE"
+
+begin
+  keyfile = File.readlink(File.expand_path("~/.ssh/id_github_current"))
+  project = keyfile =~ %r{id_github_(\w+)} ? $1 : "NONE"
+rescue Errno::ENOENT
+  project = "NONE"
+end
+
+puts "git user:       #{user_name}"
+puts "git email:      #{user_email}"
+puts "GitHub project: #{project}"
