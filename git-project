@@ -7,6 +7,7 @@ id_file = "id_github_pivotal#{project}"
 Dir.chdir(File.expand_path('~/.ssh')) do
   if File.exists?(id_file)
     `ln -sf #{id_file} id_github_current`
+    puts "Now using key #{id_file}"
     if `grep -c id_github_current config`.to_i == 0
       puts <<-WARNING
 You must edit your .ssh/config file to include:
