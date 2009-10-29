@@ -4,7 +4,7 @@ These scripts are helpers for managing developer workflow when using git repos h
 
 ## Installation
 
-    $ git clone git@github.com:pivotalprivate/git_scripts.git
+    $ git clone git://github.com/pivotal/git_scripts.git
     $ cd git_scripts
     $ ./install.sh
 
