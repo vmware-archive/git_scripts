@@ -1,22 +1,34 @@
 #!/usr/bin/env ruby
+require 'socket'
 
-project = ARGV[0]
+def check_ssh_config
+  if `grep -c id_github_current config`.to_i == 0
+    puts <<-WARNING
+    You must edit your .ssh/config file to include:
+      Host github.com
+        User git
+        IdentityFile /Users/pivotal/.ssh/id_github_current
+    WARNING
+  end
+end
 
-id_file = "id_github_pivotal#{project}"
+project = ARGV[0] || Dir.pwd.split('/').last
+hostname = Socket.gethostname.split('.').first
+possible_id_files = [
+  "id_github_pivotal#{project}",
+  "id_#{hostname}_github_pivotal#{project}"
+]
 
 Dir.chdir(File.expand_path('~/.ssh')) do
-  if File.exists?(id_file)
-    `ln -sf #{id_file} id_github_current`
-    puts "Now using key #{id_file}"
-    if `grep -c id_github_current config`.to_i == 0
-      puts <<-WARNING
-You must edit your .ssh/config file to include:
-  Host github.com
-    User git
-    IdentityFile /Users/pivotal/.ssh/id_github_current
-WARNING
+  possible_id_files.each do |id_file|
+    if File.exists?(id_file)
+      `ln -sf #{id_file} id_github_current`
+      puts "Now using key #{id_file}"
+      check_ssh_config
+      exit 0
     end
-  else
-    puts "Key not found. You must create a ssh key at ~/.ssh/#{id_file}"
   end
+  puts "Key not found. You must create a ssh key in ~/.ssh/ called " +
+    possible_id_files[0..-2].join(", ") +
+    " or #{possible_id_files[-1]}"
 end
