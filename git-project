@@ -15,8 +15,9 @@ end
 project = ARGV[0] || Dir.pwd.split('/').last
 hostname = Socket.gethostname.split('.').first
 possible_id_files = [
+  "id_#{hostname}_github_pivotal#{project}",
   "id_github_pivotal#{project}",
-  "id_#{hostname}_github_pivotal#{project}"
+  "id_github_#{project}"
 ]
 
 Dir.chdir(File.expand_path('~/.ssh')) do
