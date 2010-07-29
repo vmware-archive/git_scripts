@@ -42,3 +42,5 @@ This script sets the user account you will use to access repos hosted on github.
     Host github.com
       User git
       IdentityFile /Users/pivotal/.ssh/id_github_current
+
+Copyright (c) 2010 Pivotal Labs. This software is licensed under the MIT License.
