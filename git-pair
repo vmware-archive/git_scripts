@@ -86,4 +86,4 @@ else
   `git config --global --unset user.email`
   puts "Unset user.name and user.email"
 end
-puts `git config -l | grep user | tail -2`
+puts `git config --global -l | grep user | tail -2`
