@@ -77,10 +77,15 @@ if authors.any?
   else
     authors = names[0..-2].join(", ") + " & " + names.last
   end
-  email = ([config['email']['prefix']] + emails).join('+')
+  email = 
+    if email_prefix = config['email']['prefix']
+      "#{([config['email']['prefix']] + emails).join('+')}@#{config['email']['domain']}"
+    else
+      config['email']
+    end
 
   system("git", "config", "--global", "user.name", "#{authors}")
-  system("git", "config", "--global", "user.email", "#{email}@#{config['email']['domain']}")
+  system("git", "config", "--global", "user.email", "#{email}")
 else
   `git config --global --unset user.name`
   `git config --global --unset user.email`
