@@ -51,7 +51,9 @@ end
 ## End of configuration
 #######################################################################
 
+cur_dir = Dir.pwd
 config = get_pairs_config
+Dir.chdir cur_dir # change back to initial dir in case get_pairs_config had to walk up to find .pairs
 authors = ARGV.map do |initials|
   if full_name = config['pairs'][initials.downcase]
     full_name
