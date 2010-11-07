@@ -84,11 +84,11 @@ if authors.any?
       config['email']
     end
 
-  system("git", "config", "--global", "user.name", "#{authors}")
-  system("git", "config", "--global", "user.email", "#{email}")
+  system("git", "config", "user.name", "#{authors}")
+  system("git", "config", "user.email", "#{email}")
 else
-  `git config --global --unset user.name`
-  `git config --global --unset user.email`
+  `git config --unset user.name`
+  `git config --unset user.email`
   puts "Unset user.name and user.email"
 end
-puts `git config --global -l | grep user | tail -2`
+puts `git config -l | grep user | tail -2`
