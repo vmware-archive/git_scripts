@@ -3,9 +3,11 @@
 # Configures the git author to a list of developers when pair programming,
 # alphabetized on first name
 # 
-# Usage: git pair ls gw (Sets the author to 'Greg Woodward & Loren Siebert')
-#        git pair       (Unsets the author so the git global config takes effect)
-# 
+# Usage: git pair ls gw (Sets the repo specific author to 'Greg Woodward & Loren Siebert')
+#        git pair       (Unsets the repo specific author so the git global config takes effect)
+#        git pair --global ls gw (Sets the global author to 'Greg Woodward & Loren Siebert')
+#        git pair --global (Unsets the global author)
+#
 # Orginal Author: Bryan Helmkamp (http://brynary.com)
 
 #######################################################################
@@ -51,8 +53,9 @@ end
 ## End of configuration
 #######################################################################
 
-config = get_pairs_config
-authors = ARGV.map do |initials|
+global_config_string = ARGV.delete("--global").to_s
+config               = get_pairs_config
+authors              = ARGV.map do |initials|
   if full_name = config['pairs'][initials.downcase]
     full_name
   else
@@ -79,16 +82,18 @@ if authors.any?
   end
   email = 
     if email_prefix = config['email']['prefix']
-      "#{([config['email']['prefix']] + emails).join('+')}@#{config['email']['domain']}"
+      "#{([email_prefix] + emails).join('+')}@#{config['email']['domain']}"
     else
       config['email']
     end
 
-  system("git", "config", "--global", "user.name", "#{authors}")
-  system("git", "config", "--global", "user.email", "#{email}")
+  {"user.name" => authors, "user.email" => email}.each do |key, value|
+    system("git config #{global_config_string} #{key} #{value}")
+  end
 else
-  `git config --global --unset user.name`
-  `git config --global --unset user.email`
-  puts "Unset user.name and user.email"
+  ["user.name", "user.email"].each do |key|
+    system("git config #{global_config_string} --unset #{key}")
+  end
+  puts "Unset #{global_config_string} user.name and user.email"
 end
-puts `git config --global -l | grep user | tail -2`
+puts `git config #{global_config_string} -l | grep user | tail -2`
