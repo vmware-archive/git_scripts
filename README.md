@@ -1,16 +1,14 @@
 # Git Scripts
 
-These scripts are helpers for managing developer workflow when using git repos hosted on GitHub.  Put them in ~/bin and they can be run as standard git commands like `git about`.
+These scripts are helpers for managing developer workflow when using git repos hosted on GitHub.  Install as a rubygem and they can be run as standard git commands like `git about`.
 
 ## Installation
 
-    $ git clone git://github.com/pivotal/git_scripts.git
-    $ cd git_scripts
-    $ ./install.sh
+    $ gem install pivotal_git_scripts
 
 ## git-about
 
-`git about` shows settings set by git-pair and git-project
+`git about` shows settings set by `git pair` and `git project`
 
 ## git-pair
 
