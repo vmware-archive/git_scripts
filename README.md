@@ -33,6 +33,8 @@ Use `git pair` to set the git config user info that sets the commit user metadat
 
 You can put the .pairs file in your project repo root directory and check it into git, or you can put it in your ~ directory so it's available to all projects on the workstation.
 
+By default this command affects the configuration in the current project (.git/config). Use the `--global` option to set the global git configuration for all projects (~/.gitconfig).
+
 ## git-project
 
     $ git project pivots

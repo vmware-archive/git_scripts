@@ -23,11 +23,12 @@ end
 
 def get_pairs_config
   pairs_file_path = nil
-  until pairs_file_path || Dir.pwd == File.expand_path('/') do
-    if File.exists?(".pairs")
-      pairs_file_path = File.expand_path(".pairs")
+  candidate_file_path = '.pairs'
+  until pairs_file_path || File.expand_path(candidate_file_path) == '/.pairs' do
+    if File.exists?(candidate_file_path)
+      pairs_file_path = candidate_file_path
     else
-      Dir.chdir ".."
+      candidate_file_path = File.join("..", candidate_file_path)
     end
   end
   unless pairs_file_path
@@ -47,7 +48,7 @@ email:
 INSTRUCTIONS
     exit(1)
   end
-  pairs_file_path ? YAML.load_file(".pairs") : {}
+  pairs_file_path ? YAML.load_file(pairs_file_path) : {}
 end
 
 ## End of configuration
@@ -86,14 +87,27 @@ if authors.any?
     else
       config['email']
     end
-
-  {"user.name" => authors, "user.email" => email}.each do |key, value|
-    system("git config #{global_config_string} #{key} #{value}")
-  end
+  system(%Q{git config #{global_config_string} user.name "#{authors}"})
+  system(%Q{git config #{global_config_string} user.email "#{email}"})
 else
-  ["user.name", "user.email"].each do |key|
-    system("git config #{global_config_string} --unset #{key}")
-  end
+  system("git config #{global_config_string} --unset user.name")
+  system("git config #{global_config_string} --unset user.email")
   puts "Unset #{global_config_string} user.name and user.email"
 end
-puts `git config #{global_config_string} -l | grep user | tail -2`
+
+global_name_setting = `git config --global --get-regexp '^user\.name'`
+local_name_setting = `git config -f .git/config --get-regexp '^user\.name'`
+if global_name_setting.length > 0 && local_name_setting.length > 0
+  puts "NOTE: Overriding global user.name setting with local."
+end
+puts "global: #{global_name_setting}" if global_name_setting.length > 0
+puts "local:  #{local_name_setting}"  if local_name_setting.length > 0
+
+
+global_email_setting = `git config --global --get-regexp '^user\.email'`
+local_email_setting = `git config -f .git/config --get-regexp '^user\.email'`
+if global_email_setting.length > 0 && local_email_setting.length > 0
+  puts "NOTE: Overriding global user.email setting with local."
+end
+puts "global: #{global_email_setting}" if global_email_setting.length > 0
+puts "local:  #{local_email_setting}"  if local_email_setting.length > 0

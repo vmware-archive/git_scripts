@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
 
 config = `git config -l`
-user_name = config =~ %r{^user\.name=(.*)$} ? $1 : "NONE"
-user_email = config =~ %r{^user\.email=(.*)$} ? $1 : "NONE"
+user_name = `git config --get user.name`
+user_name = "NONE" if user_name.length == 0
+user_email = `git config --get user.email`
+user_email = "NONE" if user_email.length == 0
 
 begin
   keyfile = File.readlink(File.expand_path("~/.ssh/id_github_current"))
