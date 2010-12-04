@@ -2,9 +2,13 @@
 
 These scripts are helpers for managing developer workflow when using git repos hosted on GitHub.  Install as a rubygem and they can be run as standard git commands like `git about`.
 
-## Installation
+## Gem Installation
 
     $ gem install pivotal_git_scripts
+    
+## System Wide Installation
+
+    $ cd /usr/local/bin && curl -L http://github.com/pivotal/git_scripts/tarball/master | gunzip | tar xvf - --strip=2
 
 ## git-about
 
@@ -28,10 +32,11 @@ Use `git pair` to set the git config user info that sets the commit user metadat
     email:
       prefix: pair
       domain: pivotallabs.com
+    #global: true
 
 You can put the .pairs file in your project repo root directory and check it into git, or you can put it in your ~ directory so it's available to all projects on the workstation.
 
-By default this command affects the configuration in the current project (.git/config). Use the `--global` option to set the global git configuration for all projects (~/.gitconfig).
+By default this command affects the configuration in the current project (.git/config). Use the `--global` option or add 'global: true' to your pairs file to set the global git configuration for all projects (~/.gitconfig).
 
 ## git-project
 
