@@ -15,7 +15,7 @@
 require 'yaml'
 
 
-def look_up_the_filesystem_tree_for(filename)
+def look_up_the_filesystem_for(filename)
   result = nil
   looking_at = filename
   until result || File.expand_path(looking_at) == "/#{filename}" do
@@ -29,7 +29,8 @@ def look_up_the_filesystem_tree_for(filename)
 end
 
 
-unless look_up_the_filesystem_tree_for(".git")
+git_directory = look_up_the_filesystem_for(".git")
+unless git_directory
   puts "This doesn't look like a git repository."
   exit 1
 end
@@ -37,7 +38,7 @@ end
 ## Configuration
 
 def get_pairs_config
-  pairs_file_path=look_up_the_filesystem_tree_for('.pairs')
+  pairs_file_path=look_up_the_filesystem_for('.pairs')
   unless pairs_file_path
     puts <<-INSTRUCTIONS
 Could not find a .pairs file. Create a YAML file in your project or home directory.
@@ -103,7 +104,7 @@ else
 end
 
 global_name_setting = `git config --global --get-regexp '^user\.name'`
-local_name_setting = `git config -f .git/config --get-regexp '^user\.name'`
+local_name_setting = `git config -f #{git_directory}/config --get-regexp '^user\.name'`
 if global_name_setting.length > 0 && local_name_setting.length > 0
   puts "NOTE: Overriding global user.name setting with local."
 end
@@ -112,7 +113,7 @@ puts "local:  #{local_name_setting}"  if local_name_setting.length > 0
 
 
 global_email_setting = `git config --global --get-regexp '^user\.email'`
-local_email_setting = `git config -f .git/config --get-regexp '^user\.email'`
+local_email_setting = `git config -f #{git_directory}/config --get-regexp '^user\.email'`
 if global_email_setting.length > 0 && local_email_setting.length > 0
   puts "NOTE: Overriding global user.email setting with local."
 end
