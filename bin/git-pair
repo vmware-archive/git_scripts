@@ -14,7 +14,22 @@
 
 require 'yaml'
 
-unless File.exists?(".git")
+
+def look_up_the_filesystem_tree_for(filename)
+  result = nil
+  looking_at = filename
+  until result || File.expand_path(looking_at) == "/#{filename}" do
+    if File.exists?(looking_at)
+      result = looking_at
+    else
+      looking_at = File.join('..', looking_at)
+    end
+  end
+  result
+end
+
+
+unless look_up_the_filesystem_tree_for(".git")
   puts "This doesn't look like a git repository."
   exit 1
 end
@@ -22,15 +37,7 @@ end
 ## Configuration
 
 def get_pairs_config
-  pairs_file_path = nil
-  candidate_file_path = '.pairs'
-  until pairs_file_path || File.expand_path(candidate_file_path) == '/.pairs' do
-    if File.exists?(candidate_file_path)
-      pairs_file_path = candidate_file_path
-    else
-      candidate_file_path = File.join("..", candidate_file_path)
-    end
-  end
+  pairs_file_path=look_up_the_filesystem_tree_for('.pairs')
   unless pairs_file_path
     puts <<-INSTRUCTIONS
 Could not find a .pairs file. Create a YAML file in your project or home directory.
