@@ -51,11 +51,17 @@ INSTRUCTIONS
   pairs_file_path ? YAML.load_file(pairs_file_path) : {}
 end
 
+def get_global_config(config)
+  if ARGV.delete("--global") || config["global"]
+    "--global"
+  end
+end
+
 ## End of configuration
 #######################################################################
 
-global_config_string = ARGV.delete("--global").to_s
 config               = get_pairs_config
+global_config_string = get_global_config(config)
 authors              = ARGV.map do |initials|
   if full_name = config['pairs'][initials.downcase]
     full_name
