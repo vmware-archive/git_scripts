@@ -87,12 +87,11 @@ if authors.any?
   else
     authors = names[0..-2].join(", ") + " & " + names.last
   end
-  email =
-    if email_prefix = config['email']['prefix']
-      "#{([email_prefix] + emails).join('+')}@#{config['email']['domain']}"
-    else
-      config['email']
-    end
+  email = if email_prefix = config['email']['prefix']
+    "#{([config['email']['prefix']] + emails).compact.join('+')}@#{config['email']['domain']}"
+  else
+    config['email']
+  end
 
   initials = ARGV.join(' ')
 
