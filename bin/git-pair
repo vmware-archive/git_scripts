@@ -108,7 +108,7 @@ if authors.any?
     else
       config['email']
     end
-  system(%Q{git config #{global_config_string} user.name "#{authors}"})
+  system(%Q{git config #{global_config_string} user.name '#{authors}'})
   system(%Q{git config #{global_config_string} user.email "#{email}"})
 else
   system("git config #{global_config_string} --unset user.name")
