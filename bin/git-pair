@@ -42,6 +42,8 @@ pairs:
   eh: Edward Hieatt
   js: Josh Susser; jsusser
   sf: Serguei Filimonov; serguei
+aliases:
+  Sussmonov: [ js, sf ]
 email:
   prefix: pair
   domain: pivotallabs.com
@@ -62,7 +64,15 @@ end
 
 config               = get_pairs_config
 global_config_string = get_global_config(config)
-authors              = ARGV.map do |initials|
+
+if (aliases = config['aliases']) && ARGV.length == 1
+  pair_alias = ARGV.first
+  authors = aliases[pair_alias]
+else
+  authors = ARGV
+end
+
+authors.map! do |initials|
   if full_name = config['pairs'][initials.downcase]
     full_name
   else
@@ -87,6 +97,11 @@ if authors.any?
   else
     authors = names[0..-2].join(", ") + " & " + names.last
   end
+
+  if pair_alias
+    authors = "#{authors} AKA \"#{pair_alias}\""
+  end
+
   email = 
     if email_prefix = config['email']['prefix']
       "#{([email_prefix] + emails).join('+')}@#{config['email']['domain']}"
