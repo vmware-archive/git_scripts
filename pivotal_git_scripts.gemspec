@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name        = "pivotal_git_scripts"
-  s.version     = "1.1.0"
+  s.version     = "1.1.1"
   s.date        = Time.now.strftime('%Y-%m-%d')
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Pivotal Labs"]
