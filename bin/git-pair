@@ -93,11 +93,16 @@ if authors.any?
     else
       config['email']
     end
+
+  initials = ARGV.join(' ')
+
   system(%Q{git config #{global_config_string} user.name "#{authors}"})
   system(%Q{git config #{global_config_string} user.email "#{email}"})
+  system(%Q{git config #{global_config_string} user.initials "#{initials}"})
 else
   system("git config #{global_config_string} --unset user.name")
   system("git config #{global_config_string} --unset user.email")
+  system("git config #{global_config_string} --unset user.initials")
   puts "Unset #{global_config_string} user.name and user.email"
 end
 
