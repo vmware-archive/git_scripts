@@ -2,7 +2,7 @@
 
 # Configures the git author to a list of developers when pair programming,
 # alphabetized on first name
-# 
+#
 # Usage: git pair ls gw (Sets the repo specific author to 'Greg Woodward & Loren Siebert')
 #        git pair       (Unsets the repo specific author so the git global config takes effect)
 #        git pair --global ls gw (Sets the global author to 'Greg Woodward & Loren Siebert')
@@ -15,10 +15,7 @@
 require 'yaml'
 
 git_dir = `git rev-parse --git-dir`.chomp
-unless File.exists?(git_dir)
-  puts "This doesn't look like a git repository."
-  exit 1
-end
+exit 1 unless File.exists?(git_dir)
 
 ## Configuration
 
@@ -32,6 +29,8 @@ def get_pairs_config
       candidate_file_path = File.join("..", candidate_file_path)
     end
   end
+  puts pairs_file_path.inspect
+
   unless pairs_file_path
     puts <<-INSTRUCTIONS
 Could not find a .pairs file. Create a YAML file in your project or home directory.
@@ -88,7 +87,7 @@ if authors.any?
   else
     authors = names[0..-2].join(", ") + " & " + names.last
   end
-  email = 
+  email =
     if email_prefix = config['email']['prefix']
       "#{([email_prefix] + emails).join('+')}@#{config['email']['domain']}"
     else

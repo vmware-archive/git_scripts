@@ -134,15 +134,19 @@ describe "CLI" do
         expect_config result, "Aa Bb, Bb Cc & Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
       end
 
-      it "fails when there is no .git" do
-        run "rm -rf .git"
-        run "git pair ab", :fail => true
+      it "fails when there is no .git in the tree" do
+        run "rm -f /tmp/pairs"
+        run "cp .pairs /tmp"
+        Dir.chdir "/tmp" do
+          result = run "git pair ab 2>&1", :fail => true
+          result.should include("Not a git repository (or any of the parent directories)")
+        end
+        run "rm -f /tmp/pairs"
       end
 
       it "finds .pairs file in lower parent folder" do
         run "mkdir foo"
         Dir.chdir "foo" do
-          run "git init"
           result = run "git pair ab"
           expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
         end
@@ -178,6 +182,7 @@ describe "CLI" do
     context "without a .pairs file in the tree" do
       around do |example|
         Dir.chdir "/tmp" do
+          run "rm -f .pairs"
           dir = "git_stats_test"
           run "rm -rf #{dir}"
           run "mkdir #{dir}"
