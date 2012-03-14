@@ -78,13 +78,13 @@ describe "CLI" do
 
       prefix = (options[:global] ? "global: " : "local:  ")
       result.should include "#{prefix}user.name #{name}"
-      #result.should include "#{prefix}user.initials #{initials}" # TODO
+      result.should include "#{prefix}user.initials #{initials}"
       result.should include "#{prefix}user.email #{email}"
     end
 
     it "prints help" do
       result = run "git-pair --help"
-      result.should include("Configures the git author")
+      result.should include("Configures git authors when pair programming")
     end
 
     it "prints version" do
@@ -166,7 +166,7 @@ describe "CLI" do
         run "git pair ab --global"
         run "git pair bc"
         result = run "git pair"
-        #result.should include "Unset user.name, user.email and user.initials" #TODO
+        result.should include "Unset user.name, user.email, user.initials"
         expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com", :global => true
         result.should_not include("local:")
       end

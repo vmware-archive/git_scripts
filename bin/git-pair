@@ -2,13 +2,11 @@
 require 'yaml'
 require 'optparse'
 
-git_dir = `git rev-parse --git-dir`.chomp
-exit 1 unless File.exists?(git_dir)
-
-@options = {}
-OptionParser.new do |opts|
-  # copy-paste from readme
-  opts.banner = <<BANNER.sub('<br/>','')
+def parse_cli_options(argv)
+  options = {}
+  OptionParser.new do |opts|
+    # copy-paste from readme
+    opts.banner = <<BANNER.sub('<br/>','')
 Configures git authors when pair programming.
 
     git pair sp js
@@ -35,19 +33,20 @@ Use the `--global` option or add `global: true` to your `.pairs` file to set the
 
 Options are:
 BANNER
-  opts.on("-g", "--global", "Modify global git options instead of local") { @options[:global] = true }
-  opts.on("-v", "--version", "Show Version") do
-    $LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
-    require "pivotal_git_scripts/version"
-    puts PivotalGitScripts::VERSION
-    exit
-  end
-  opts.on("-h", "--help", "Show this.") { puts opts; exit }
-end.parse!(ARGV)
+    opts.on("-g", "--global", "Modify global git options instead of local") { options[:global] = true }
+    opts.on("-v", "--version", "Show Version") do
+      $LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
+      require "pivotal_git_scripts/version"
+      puts PivotalGitScripts::VERSION
+      exit
+    end
+    opts.on("-h", "--help", "Show this.") { puts opts; exit }
+  end.parse!(argv)
 
-## Configuration
+  options
+end
 
-def get_pairs_config
+def read_pairs_config
   pairs_file_path = nil
   candidate_file_path = '.pairs'
   until pairs_file_path || File.expand_path(candidate_file_path) == '/.pairs' do
@@ -78,74 +77,72 @@ INSTRUCTIONS
   pairs_file_path ? YAML.load_file(pairs_file_path) : {}
 end
 
-def get_global_config(config)
-  if @options[:global] || config["global"]
-    "--global"
+def read_author_info_from_config(config, initials)
+  initials.map do |initials|
+    if full_name = config['pairs'][initials.downcase]
+      full_name
+    else
+      puts "Couldn't find author name for initials: #{initials}. Add this person to the .pairs file in your project or home directory."
+      exit 1
+    end
   end
 end
 
-## End of configuration
-#######################################################################
-
-config               = get_pairs_config
-global_config_string = get_global_config(config)
-authors              = ARGV.map do |initials|
-  if full_name = config['pairs'][initials.downcase]
-    full_name
+def build_email(emails, config)
+  if config.is_a?(Hash)
+    "#{([config['prefix']] + emails).compact.join('+')}@#{config['domain']}"
   else
-    puts "Couldn't find author name for initials: #{initials}. Add this person to the .pairs file in your project or home directory."
-    exit 1
+    config
   end
 end
 
-if authors.any?
+def set_git_config(global_config_string, options)
+  options.each do |key,value|
+    key = "user.#{key}"
+    value = value ? %Q{#{key} "#{value}"} : "--unset #{key}"
+    system(%Q{git config#{global_config_string} #{value}})
+  end
+end
+
+def report_git_settings(git_dir, key)
+  global = `git config --global --get-regexp '^user\.#{key}'`
+  local = `git config -f #{git_dir}/config --get-regexp '^user\.#{key}'`
+  if global.length > 0 && local.length > 0
+    puts "NOTE: Overriding global user.#{key} setting with local."
+  end
+  puts "global: #{global}" if global.length > 0
+  puts "local:  #{local}" if local.length > 0
+end
+
+def extract_author_names_and_email_ids_from_config(config, initials)
+  authors = read_author_info_from_config(config, initials)
   authors.sort!.uniq!
-  names, emails = authors.collect do |a|
-    both = a.split(";").collect {|s| s.strip}
-    both << both[0].split(' ').first.downcase if both.length == 1  # default email to first name
-    both
+  authors.map do |a|
+    full_name, email_id = a.split(";").map(&:strip)
+    email_id ||= full_name.split(' ').first.downcase
+    [full_name, email_id]
   end.transpose
+end
 
-  case authors.size
-  when 1
-    authors = names.first
-  when 2
-    authors = names.join(" & ")
-  else
-    authors = names[0..-2].join(", ") + " & " + names.last
-  end
+git_dir = `git rev-parse --git-dir`.chomp
+exit 1 if git_dir.empty?
 
-  email = if config['email'].is_a?(Hash)
-    "#{([config['email']['prefix']] + emails).compact.join('+')}@#{config['email']['domain']}"
-  else
-    config['email']
-  end
+options = parse_cli_options(ARGV)
+initials = ARGV
+config = read_pairs_config
+global = " --global" if options[:global] or config["global"]
 
-  initials = ARGV.join(' ')
+if initials.any?
+  author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
+  authors = [author_names[0..-2].join(", "), author_names.last].reject(&:empty?).join(" & ")
+  email = build_email(email_ids, config["email"])
 
-  system(%Q{git config #{global_config_string} user.name "#{authors}"})
-  system(%Q{git config #{global_config_string} user.email "#{email}"})
-  system(%Q{git config #{global_config_string} user.initials "#{initials}"})
+  set_git_config global, :name => authors, :email => email, :initials => initials.join(" ")
 else
-  system("git config #{global_config_string} --unset user.name")
-  system("git config #{global_config_string} --unset user.email")
-  system("git config #{global_config_string} --unset user.initials")
-  puts "Unset #{global_config_string} user.name and user.email"
+  set_git_config global, :name => nil, :email => nil, :initials => nil
+  puts "Unset#{global} user.name, user.email, user.initials"
 end
 
-global_name_setting = `git config --global --get-regexp '^user\.name'`
-local_name_setting = `git config -f #{git_dir}/config --get-regexp '^user\.name'`
-if global_name_setting.length > 0 && local_name_setting.length > 0
-  puts "NOTE: Overriding global user.name setting with local."
+[:name, :email, :initials].each do |key|
+  report_git_settings(git_dir, key)
 end
-puts "global: #{global_name_setting}" if global_name_setting.length > 0
-puts "local:  #{local_name_setting}"  if local_name_setting.length > 0
-
-
-global_email_setting = `git config --global --get-regexp '^user\.email'`
-local_email_setting = `git config -f #{git_dir}/config --get-regexp '^user\.email'`
-if global_email_setting.length > 0 && local_email_setting.length > 0
-  puts "NOTE: Overriding global user.email setting with local."
-end
-puts "global: #{global_email_setting}" if global_email_setting.length > 0
-puts "local:  #{local_email_setting}"  if local_email_setting.length > 0
