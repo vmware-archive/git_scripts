@@ -87,7 +87,8 @@ if authors.any?
   else
     authors = names[0..-2].join(", ") + " & " + names.last
   end
-  email = if email_prefix = config['email']['prefix']
+
+  email = if config['email'].is_a?(Hash)
     "#{([config['email']['prefix']] + emails).compact.join('+')}@#{config['email']['domain']}"
   else
     config['email']
