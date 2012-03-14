@@ -1,13 +1,13 @@
 #!/usr/bin/env ruby
-config = `git config -l`
 user_name = `git config --get user.name`
-user_name = "NONE" if user_name.strip.length == 0
+user_name = "NONE" if user_name.empty?
+
 user_email = `git config --get user.email`
-user_email = "NONE" if user_email.strip.length == 0
+user_email = "NONE" if user_email.empty?
 
 begin
-  keyfile = File.readlink(File.expand_path("~/.ssh/id_github_current"))
-  project = keyfile =~ %r{id_github_(\w+)} ? $1 : "NONE"
+  key_file = File.readlink(File.expand_path("~/.ssh/id_github_current"))
+  project = (key_file =~ %r{id_github_(\w+)} ? $1 : "NONE")
 rescue Errno::ENOENT
   project = "NONE"
 end
