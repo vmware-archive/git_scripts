@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.version     = PivotalGitScripts::VERSION
   s.authors     = ["Pivotal Labs"]
   s.email       = ["gems@pivotallabs.com"]
-  s.homepage    = ""
+  s.homepage    = "http://github.com/pivotal/git_scripts"
   s.summary     = %q{Developer git workflow convenience scripts}
   s.description = %q{These scripts are helpers for managing developer workflow when using git repos hosted on GitHub.}
 
