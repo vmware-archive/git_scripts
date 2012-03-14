@@ -53,6 +53,7 @@ Authors
 Copyright (c) 2010 [Pivotal Labs](http://pivotallabs.com). This software is licensed under the MIT License.
 
 ### [Contributors](https://github.com/pivotal/git_scripts/contributors)
+ - git-pair original author [Bryan Helmkamp](http://brynary.com)
  - lots of pivots :)
  - [James Sanders](https://github.com/jsanders)
  - [Todd Persen](https://github.com/toddboom)
