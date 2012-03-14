@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    pivotal_git_scripts (1.1.1)
+    pivotal_git_scripts (1.1.2)
 
 GEM
   remote: http://rubygems.org/
