@@ -5,7 +5,7 @@ These scripts are helpers for managing developer workflow when using git repos h
 ## Gem Installation
 
     $ gem install pivotal_git_scripts
-    
+
 ## System Wide Installation
 
     $ cd /usr/local/bin && curl -L http://github.com/pivotal/git_scripts/tarball/master | gunzip | tar xvf - --strip=2
@@ -48,4 +48,10 @@ This script sets the user account you will use to access repos hosted on github.
       User git
       IdentityFile /Users/pivotal/.ssh/id_github_current
 
-Copyright (c) 2010 Pivotal Labs. This software is licensed under the MIT License.
+Authors
+====
+Copyright (c) 2010 [Pivotal Labs](http://pivotallabs.com). This software is licensed under the MIT License.
+
+### [Contributors](https://github.com/pivotal/git_scripts/contributors)
+ - lots of pivots :)
+ - [James Sanders](https://github.com/jsanders)
