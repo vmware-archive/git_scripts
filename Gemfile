@@ -6,3 +6,4 @@ gemspec
 gem "rake"
 gem "bundler"
 gem "rspec"
+gem "unindent"

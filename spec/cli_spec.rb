@@ -1,13 +1,19 @@
+require "unindent"
+
 describe "CLI" do
   before :all do
     # use local scripts
     ENV["PATH"] = "#{File.join(File.dirname(__FILE__),"..","bin")}:#{ENV["PATH"]}"
   end
 
-  def run(command)
+  def run(command, options={})
     result = `#{command}`
-    raise "FAILED #{command} : #{result}" unless $?.success?
+    raise "FAILED #{command} : #{result}" if $?.success? == !!options[:fail]
     result
+  end
+
+  def write(file, content)
+    File.open(file, 'w'){|f| f.write content }
   end
 
   around do |example|
@@ -59,6 +65,137 @@ describe "CLI" do
 
       it "finds a project" do
         run("git about").should =~ /GitHub project:\s+foo/
+      end
+    end
+  end
+
+  describe "pair" do
+    def expect_config(result, name, initials, email, options={})
+      global = "cd /tmp && " if options[:global]
+      run("#{global}git config user.name").should == "#{name}\n"
+      run("#{global}git config user.initials").should == "#{initials}\n"
+      run("#{global}git config user.email").should == "#{email}\n"
+
+      prefix = (options[:global] ? "global: " : "local:  ")
+      result.should include "#{prefix}user.name #{name}"
+      #result.should include "#{prefix}user.initials #{initials}" # TODO
+      result.should include "#{prefix}user.email #{email}"
+    end
+
+    context "with .pairs file" do
+      before do
+        write ".pairs", <<-YAML.unindent
+          pairs:
+            ab: Aa Bb
+            bc: Bb Cc
+            cd: Cc Dd
+
+          email:
+            prefix: the-pair
+            domain: the-host.com
+          YAML
+      end
+
+      describe "global" do
+        it "sets pairs globally when global: true is set" do
+          write ".pairs", File.read(".pairs") + "\nglobal: true"
+          result = run "git pair ab"
+          expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com", :global => true
+        end
+
+        it "sets pairs globally when --global is given" do
+          result = run "git pair ab --global"
+          result.should include "global: user.name Aa Bb"
+          expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com", :global => true
+        end
+
+        it "unsets global config when no argument is passed" do
+          run "git pair ab --global"
+          run "git pair ab"
+          result = run "git pair --global"
+          #result.should include "Unset --global user.name, user.email and user.initials"
+          expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
+          result.should_not include("global:")
+        end
+      end
+
+      it "can set a single user as pair" do
+        result = run "git pair ab"
+        expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
+      end
+
+      it "can set a 2 users as pair" do
+        result = run "git pair ab bc"
+        expect_config result, "Aa Bb & Bb Cc", "ab bc", "the-pair+aa+bb@the-host.com"
+      end
+
+      it "can set a n users as pair" do
+        result = run "git pair ab bc cd"
+        expect_config result, "Aa Bb, Bb Cc & Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
+      end
+
+      it "fails when there is no .git" do
+        run "rm -rf .git"
+        run "git pair ab", :fail => true
+      end
+
+      it "finds .pairs file in lower parent folder" do
+        run "mkdir foo"
+        Dir.chdir "foo" do
+          run "git init"
+          result = run "git pair ab"
+          expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
+        end
+      end
+
+      it "unsets local config when no argument is passed" do
+        run "git pair ab --global"
+        run "git pair bc"
+        result = run "git pair"
+        #result.should include "Unset user.name, user.email and user.initials" #TODO
+        expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com", :global => true
+        result.should_not include("local:")
+      end
+
+      it "uses hard email when given" do
+        write ".pairs", File.read(".pairs").sub(/email:.*/m, "email: foo@bar.com")
+        result = run "git pair ab"
+        expect_config result, "Aa Bb", "ab", "foo@bar.com"
+      end
+
+      it "fails with unknown initials" do
+        result = run "git pair xx", :fail => true
+        result.should include("Couldn't find author name for initials: xx")
+      end
+
+      it "uses alternate email prefix" do
+        write ".pairs", File.read(".pairs").sub(/ab:.*/, "ab: Aa Bb; blob")
+        result = run "git pair ab"
+        expect_config result, "Aa Bb", "ab", "the-pair+blob@the-host.com"
+      end
+    end
+
+    context "without a .pairs file in the tree" do
+      around do |example|
+        Dir.chdir "/tmp" do
+          dir = "git_stats_test"
+          run "rm -rf #{dir}"
+          run "mkdir #{dir}"
+          Dir.chdir dir do
+            run "git init"
+            example.run
+          end
+          run "rm -rf #{dir}"
+        end
+      end
+
+      it "fails if it cannot find a pairs file" do
+        run "git pair ab", :fail => true
+      end
+
+      it "prints instructions" do
+        result = run "git pair ab", :fail => true
+        result.should include("Could not find a .pairs file. Create a YAML file in your project or home directory.")
       end
     end
   end
