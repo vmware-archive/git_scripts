@@ -16,16 +16,18 @@ These scripts are helpers for managing developer workflow when using git repos h
 
 ## git-pair
 
-    $ git pair js sp
+Configures git authors when pair programming.
+
+    git pair sp js
     user.name=Josh Susser & Sam Pierson
     user.email=pair+jsusser+sam@pivotallabs.com
 
 
-Use `git pair` to set the git config user info that sets the commit user metadata.  You'll need to create a `.pairs` config file to map initials to names and email ids.  The example file:
+Create a `.pairs` config file in project root or your home folder.
 
     # .pairs - configuration for 'git pair'
-    # place in project or home directory
     pairs:
+      # <initials>: <Firstname> <Lastname>[; <email-id>]
       eh: Edward Hieatt
       js: Josh Susser; jsusser
       sf: Serguei Filimonov; serguei
@@ -34,9 +36,14 @@ Use `git pair` to set the git config user info that sets the commit user metadat
       domain: pivotallabs.com
     #global: true
 
-You can put the .pairs file in your project repo root directory and check it into git, or you can put it in your ~ directory so it's available to all projects on the workstation.
 
-By default this command affects the configuration in the current project (.git/config). Use the `--global` option or add 'global: true' to your pairs file to set the global git configuration for all projects (~/.gitconfig).
+By default this affects the current project (.git/config).<br/>
+Use the `--global` option or add `global: true` to your `.pairs` file to set the global git configuration for all projects (~/.gitconfig).
+
+Options are:
+    -g, --global                     Modify global git options instead of local
+    -v, --version                    Show Version
+    -h, --help                       Show this.
 
 ## git-project
 

@@ -1,21 +1,49 @@
 #!/usr/bin/env ruby
-
-# Configures the git author to a list of developers when pair programming,
-# alphabetized on first name
-#
-# Usage: git pair ls gw (Sets the repo specific author to 'Greg Woodward & Loren Siebert')
-#        git pair       (Unsets the repo specific author so the git global config takes effect)
-#        git pair --global ls gw (Sets the global author to 'Greg Woodward & Loren Siebert')
-#        git pair --global (Unsets the global author)
-#
-# Orginal Author: Bryan Helmkamp (http://brynary.com)
-
-#######################################################################
-
 require 'yaml'
+require 'optparse'
 
 git_dir = `git rev-parse --git-dir`.chomp
 exit 1 unless File.exists?(git_dir)
+
+@options = {}
+OptionParser.new do |opts|
+  # copy-paste from readme
+  opts.banner = <<BANNER.sub('<br/>','')
+Configures git authors when pair programming.
+
+    git pair sp js
+    user.name=Josh Susser & Sam Pierson
+    user.email=pair+jsusser+sam@pivotallabs.com
+
+
+Create a `.pairs` config file in project root or your home folder.
+
+    # .pairs - configuration for 'git pair'
+    pairs:
+      # <initials>: <Firstname> <Lastname>[; <email-id>]
+      eh: Edward Hieatt
+      js: Josh Susser; jsusser
+      sf: Serguei Filimonov; serguei
+    email:
+      prefix: pair
+      domain: pivotallabs.com
+    #global: true
+
+
+By default this affects the current project (.git/config).<br/>
+Use the `--global` option or add `global: true` to your `.pairs` file to set the global git configuration for all projects (~/.gitconfig).
+
+Options are:
+BANNER
+  opts.on("-g", "--global", "Modify global git options instead of local") { @options[:global] = true }
+  opts.on("-v", "--version", "Show Version") do
+    $LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
+    require "pivotal_git_scripts/version"
+    puts PivotalGitScripts::VERSION
+    exit
+  end
+  opts.on("-h", "--help", "Show this.") { puts opts; exit }
+end.parse!(ARGV)
 
 ## Configuration
 
@@ -29,7 +57,6 @@ def get_pairs_config
       candidate_file_path = File.join("..", candidate_file_path)
     end
   end
-  puts pairs_file_path.inspect
 
   unless pairs_file_path
     puts <<-INSTRUCTIONS
@@ -52,7 +79,7 @@ INSTRUCTIONS
 end
 
 def get_global_config(config)
-  if ARGV.delete("--global") || config["global"]
+  if @options[:global] || config["global"]
     "--global"
   end
 end

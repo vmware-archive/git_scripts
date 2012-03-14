@@ -82,6 +82,16 @@ describe "CLI" do
       result.should include "#{prefix}user.email #{email}"
     end
 
+    it "prints help" do
+      result = run "git-pair --help"
+      result.should include("Configures the git author")
+    end
+
+    it "prints version" do
+      result = run "git pair --version"
+      result.should =~ /\d+\.\d+\.\d+/
+    end
+
     context "with .pairs file" do
       before do
         write ".pairs", <<-YAML.unindent
