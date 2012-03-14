@@ -139,9 +139,15 @@ describe "CLI" do
         expect_config result, "Aa Bb & Bb Cc", "ab bc", "the-pair+aa+bb@the-host.com"
       end
 
-      it "can set a n users as pair" do
+      it "can set n users as pair" do
         result = run "git pair ab bc cd"
         expect_config result, "Aa Bb, Bb Cc & Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
+      end
+
+      it "can set a user with apostrophes as pair" do
+        write ".pairs", File.read(".pairs").sub("Aa Bb", "Pete O'Connor")
+        result = run "git pair ab"
+        expect_config result, "Pete O'Connor", "ab", "the-pair+pete@the-host.com"
       end
 
       it "fails when there is no .git in the tree" do
