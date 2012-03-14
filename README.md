@@ -55,3 +55,4 @@ Copyright (c) 2010 [Pivotal Labs](http://pivotallabs.com). This software is lice
 ### [Contributors](https://github.com/pivotal/git_scripts/contributors)
  - lots of pivots :)
  - [James Sanders](https://github.com/jsanders)
+ - [Todd Persen](https://github.com/toddboom)
