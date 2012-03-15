@@ -34,6 +34,7 @@ Create a `.pairs` config file in project root or your home folder.
     email:
       prefix: pair
       domain: pivotallabs.com
+      # no_solo_prefix: true
     #global: true
 
 

@@ -189,6 +189,22 @@ describe "CLI" do
         expect_config result, "Aa Bb", "ab", "aa@foo.com"
       end
 
+      context "when no no_solo_prefix is given" do
+        before do
+          write ".pairs", File.read(".pairs").sub(/email:.*/m, "email:\n  prefix: pairs\n  no_solo_prefix: true\n  domain: foo.com")
+        end
+
+        it "uses no email prefix for single developers" do
+          result = run "git pair ab"
+          expect_config result, "Aa Bb", "ab", "aa@foo.com"
+        end
+
+        it "uses email prefix for multiple developers" do
+          result = run "git pair ab bc"
+          expect_config result, "Aa Bb & Bb Cc", "ab bc", "pairs+aa+bb@foo.com"
+        end
+      end
+
       it "fails with unknown initials" do
         result = run "git pair xx", :fail => true
         result.should include("Couldn't find author name for initials: xx")

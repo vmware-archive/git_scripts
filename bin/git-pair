@@ -25,6 +25,7 @@ Create a `.pairs` config file in project root or your home folder.
     email:
       prefix: pair
       domain: pivotallabs.com
+      # no_solo_prefix: true
     #global: true
 
 
@@ -90,7 +91,8 @@ end
 
 def build_email(emails, config)
   if config.is_a?(Hash)
-    "#{([config['prefix']] + emails).compact.join('+')}@#{config['domain']}"
+    prefix = config['prefix'] if !config['no_solo_prefix'] or emails.size > 1
+    "#{([prefix] + emails).compact.join('+')}@#{config['domain']}"
   else
     config
   end
