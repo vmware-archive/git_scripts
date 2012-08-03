@@ -136,12 +136,12 @@ describe "CLI" do
 
       it "can set a 2 users as pair" do
         result = run "git pair ab bc"
-        expect_config result, "Aa Bb & Bb Cc", "ab bc", "the-pair+aa+bb@the-host.com"
+        expect_config result, "Aa Bb and Bb Cc", "ab bc", "the-pair+aa+bb@the-host.com"
       end
 
       it "can set n users as pair" do
         result = run "git pair ab bc cd"
-        expect_config result, "Aa Bb, Bb Cc & Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
+        expect_config result, "Aa Bb, Bb Cc and Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
       end
 
       it "can set a user with apostrophes as pair" do
@@ -201,7 +201,7 @@ describe "CLI" do
 
         it "uses email prefix for multiple developers" do
           result = run "git pair ab bc"
-          expect_config result, "Aa Bb & Bb Cc", "ab bc", "pairs+aa+bb@foo.com"
+          expect_config result, "Aa Bb and Bb Cc", "ab bc", "pairs+aa+bb@foo.com"
         end
       end
 
