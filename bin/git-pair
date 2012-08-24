@@ -22,6 +22,8 @@ Create a `.pairs` config file in project root or your home folder.
       eh: Edward Hieatt
       js: Josh Susser; jsusser
       sf: Serguei Filimonov; serguei
+    # if email section is present, email will be set
+    # if you leave out the email config section, email will not be set
     email:
       prefix: pair
       domain: pivotallabs.com
@@ -126,6 +128,10 @@ def extract_author_names_and_email_ids_from_config(config, initials)
   end.transpose
 end
 
+def no_email(config)
+   !config.key? 'email'
+end
+
 git_dir = `git rev-parse --git-dir`.chomp
 exit 1 if git_dir.empty?
 
@@ -137,12 +143,14 @@ global = " --global" if options[:global] or config["global"]
 if initials.any?
   author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
   authors = [author_names[0..-2].join(", "), author_names.last].reject(&:empty?).join(" and ")
-  email = build_email(email_ids, config["email"])
-
-  set_git_config global, :name => authors, :email => email, :initials => initials.join(" ")
+  git_config = {:name => authors,  :initials => initials.join(" ")}
+  git_config[:email] = build_email(email_ids, config["email"]) unless no_email(config)
+  set_git_config global,  git_config
 else
-  set_git_config global, :name => nil, :email => nil, :initials => nil
-  puts "Unset#{global} user.name, user.email, user.initials"
+  git_config = {:name => nil,  :initials => nil}
+  git_config[:email] = nil unless no_email(config)
+  set_git_config global, git_config
+  puts "Unset#{global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
 end
 
 [:name, :email, :initials].each do |key|

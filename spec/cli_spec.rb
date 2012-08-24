@@ -82,6 +82,11 @@ describe "CLI" do
       result.should include "#{prefix}user.email #{email}"
     end
 
+    def git_config_value(name, global = false)
+      global_prefix = "cd /tmp && " if global
+      `#{global_prefix}git config user.#{name}`
+    end
+
     it "prints help" do
       result = run "git-pair --help"
       result.should include("Configures git authors when pair programming")
@@ -181,6 +186,22 @@ describe "CLI" do
         write ".pairs", File.read(".pairs").sub(/email:.*/m, "email: foo@bar.com")
         result = run "git pair ab"
         expect_config result, "Aa Bb", "ab", "foo@bar.com"
+      end
+
+      context "when no email config is present" do
+        before do
+          write ".pairs", File.read(".pairs").sub(/email:.*/m, "")
+        end
+
+        it "doesn't set email" do
+          run "git pair ab"
+          git_config_value('email').should be_empty
+        end
+
+        it "doesn't report about email" do
+          result = run "git pair ab"
+          result.should_not include "email"
+        end
       end
 
       it "uses no email prefix when only host is given" do
