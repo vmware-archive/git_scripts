@@ -1,0 +1,85 @@
+#!/usr/bin/ruby
+
+require 'optparse'
+
+class Wip
+
+  def initialize(wip_branch_name, options)
+    @wip_branch_name = wip_branch_name
+    @current_branch = current_branch
+    @remote = options[:remote]
+  end
+
+  def validate_branches
+    if wip_is_current_branch?  then puts "Can't WIP to current branch."; bail end
+    if branch_exists_locally?  then puts "Local branch #{@wip_branch_name} exists!"; bail end
+    if branch_exists_remotely? then puts "Remote branch #{@wip_branch_name} exists!"; bail end
+  end
+
+  def create_remote_and_push
+    `git checkout -b #{@wip_branch_name}`
+    `git add -u . `
+    `git commit -m "WIP"`
+    `git push #{@remote} #{@wip_branch_name}`
+    `git checkout -b #{@current_branch}`
+  end
+
+  def current_branch
+    `git symbolic-ref --short -q HEAD`.sub("\n",'')
+  end
+
+  def local_branches
+    `git branch --list`.gsub(/[ |\*]/,'').split("\n")
+  end
+
+  def remote_branches
+    `git branch --remote`.gsub('origin/','').gsub(/ -\>.*/,'').split("\n")
+  end
+
+  def branch_exists_locally?
+    local_branches.any? { |local| local == @wip_branch_name }
+  end
+
+  def branch_exists_remotely?
+    remote_branches.any? { |remote| remote == @wip_branch_name }
+  end
+
+  def wip_is_current_branch?
+    @wip_branch_name == @current_branch
+  end
+end
+
+def bail
+  exit(1)
+end
+
+def parse_cli_options(argv)
+  options = { :remote => 'origin' }
+  OptionParser.new do |opts|
+    opts.banner = "Usage: git wip [branch-name] [options]"
+    opts.on("-r", "--remote", "Specify remote name (defaults to origin)") { |name| options[:remote] = name }
+    opts.on("-h", "--help", "Show this.") { puts opts; exit }
+  end.parse!(argv)
+
+  options
+end
+
+def validate_arguments
+  if ARGV.count == 0        then puts "Please enter a branch name!";    bail end
+  if ARGV.count > 1         then puts "Branch name can't have spaces!"; bail end
+  if ARGV.first == 'master' then puts "I'm not pushing to master";      bail end
+end
+
+def validate_origin_exists
+  if `git remote` == '' then puts "no origin configured"; bail end
+end
+
+options = parse_cli_options(ARGV)
+
+validate_arguments
+validate_origin_exists
+
+wip = Wip.new(ARGV, options)
+wip.validate_branches
+wip.create_remote_and_push
+
