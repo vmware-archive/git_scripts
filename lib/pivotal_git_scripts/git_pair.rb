@@ -15,7 +15,7 @@ module PivotalGitScripts
         options = parse_cli_options(argv)
         initials = argv
         config = read_pairs_config
-        global = " --global" if options[:global] or config["global"]
+        global = !!(options[:global] || config["global"])
 
         if initials.any?
           author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
@@ -27,7 +27,7 @@ module PivotalGitScripts
           git_config = {:name => nil,  :initials => nil}
           git_config[:email] = nil unless no_email(config)
           set_git_config global, git_config
-          puts "Unset #{global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
+          puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
         end
 
         [:name, :email, :initials].each do |key|
@@ -131,11 +131,11 @@ BANNER
         end
       end
 
-      def set_git_config(global_config_string, options)
+      def set_git_config(global, options)
         options.each do |key,value|
-          key = "user.#{key}"
-          value = value ? %Q{#{key} "#{value}"} : "--unset #{key}"
-          system(%Q{git config#{global_config_string} #{value}})
+          config_key = "user.#{key}"
+          arg = value ? %Q{#{config_key} "#{value}"} : "--unset #{config_key}"
+          system(%Q{git config#{' --global' if global} #{arg}})
         end
       end
 
