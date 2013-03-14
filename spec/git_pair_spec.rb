@@ -29,4 +29,24 @@ describe PivotalGitScripts::GitPair::Runner do
       runner.set_git_config(true, 'foo' => 'bar baz')
     end
   end
+
+  describe 'read_author_info_from_config' do
+    it 'maps from the initials to the full name' do
+      config = {
+        'pairs' => {
+          'aa' => 'An Aardvark',
+          'tt' => 'The Turtle'
+        }
+      }
+
+      names = runner.read_author_info_from_config(config, ['aa', 'tt'])
+      names.should =~ ['An Aardvark', 'The Turtle']
+    end
+
+    it 'exits when initials cannot be found' do
+      expect {
+        runner.read_author_info_from_config({"pairs" => {}}, ['aa'])
+      }.to raise_error(PivotalGitScripts::GitPair::GitPairException)
+    end
+  end
 end

@@ -7,6 +7,8 @@ module PivotalGitScripts
       runner.main(argv)
     end
 
+    class GitPairException < Exception; end
+
     class Runner
       def main(argv)
         git_dir = `git rev-parse --git-dir`.chomp
@@ -33,6 +35,9 @@ module PivotalGitScripts
         [:name, :email, :initials].each do |key|
           report_git_settings(git_dir, key)
         end
+      rescue GitPairException => e
+        puts e.message
+        exit 1
       end
 
       def parse_cli_options(argv)
@@ -92,7 +97,7 @@ BANNER
         end
 
         unless pairs_file_path
-          puts <<-INSTRUCTIONS
+          raise GitPairException, <<-INSTRUCTIONS
       Could not find a .pairs file. Create a YAML file in your project or home directory.
       Format: <initials>: <name>[; <email>]
       Example:
@@ -106,19 +111,15 @@ BANNER
         prefix: pair
         domain: pivotallabs.com
       INSTRUCTIONS
-          exit(1)
         end
-        pairs_file_path ? YAML.load_file(pairs_file_path) : {}
+
+        YAML.load_file(pairs_file_path)
       end
 
       def read_author_info_from_config(config, initials_ary)
         initials_ary.map do |initials|
-          if full_name = config['pairs'][initials.downcase]
-            full_name
-          else
-            puts "Couldn't find author name for initials: #{initials}. Add this person to the .pairs file in your project or home directory."
-            exit 1
-          end
+          config['pairs'][initials.downcase] or
+            raise GitPairException, "Couldn't find author name for initials: #{initials}. Add this person to the .pairs file in your project or home directory."
         end
       end
 
