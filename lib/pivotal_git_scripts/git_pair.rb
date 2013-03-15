@@ -1,0 +1,168 @@
+require "pivotal_git_scripts/version"
+
+module PivotalGitScripts
+  module GitPair
+    def self.main(argv)
+      runner = Runner.new
+      runner.main(argv)
+    end
+
+    class GitPairException < Exception; end
+
+    class Runner
+      def main(argv)
+        git_dir = `git rev-parse --git-dir`.chomp
+        exit 1 if git_dir.empty?
+
+        options = parse_cli_options(argv)
+        initials = argv
+        config = read_pairs_config
+        global = !!(options[:global] || config["global"])
+
+        if initials.any?
+          author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
+          authors = [author_names[0..-2].join(", "), author_names.last].reject(&:empty?).join(" and ")
+          git_config = {:name => authors,  :initials => initials.join(" ")}
+          git_config[:email] = build_email(email_ids, config["email"]) unless no_email(config)
+          set_git_config global,  git_config
+        else
+          git_config = {:name => nil,  :initials => nil}
+          git_config[:email] = nil unless no_email(config)
+          set_git_config global, git_config
+          puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
+        end
+
+        [:name, :email, :initials].each do |key|
+          report_git_settings(git_dir, key)
+        end
+      rescue GitPairException => e
+        puts e.message
+        exit 1
+      end
+
+      def parse_cli_options(argv)
+        options = {}
+        OptionParser.new do |opts|
+          # copy-paste from readme
+          opts.banner = <<BANNER.sub('<br/>','')
+      Configures git authors when pair programming.
+
+          git pair sp js
+          user.name=Josh Susser and Sam Pierson
+          user.email=pair+jsusser+sam@pivotallabs.com
+
+
+      Create a `.pairs` config file in project root or your home folder.
+
+          # .pairs - configuration for 'git pair'
+          pairs:
+            # <initials>: <Firstname> <Lastname>[; <email-id>]
+            eh: Edward Hieatt
+            js: Josh Susser; jsusser
+            sf: Serguei Filimonov; serguei
+          # if email section is present, email will be set
+          # if you leave out the email config section, email will not be set
+          email:
+            prefix: pair
+            domain: pivotallabs.com
+            # no_solo_prefix: true
+          #global: true
+
+
+      By default this affects the current project (.git/config).<br/>
+      Use the `--global` option or add `global: true` to your `.pairs` file to set the global git configuration for all projects (~/.gitconfig).
+
+      Options are:
+BANNER
+          opts.on("-g", "--global", "Modify global git options instead of local") { options[:global] = true }
+          opts.on("-v", "--version", "Show Version") do
+            puts PivotalGitScripts::VERSION
+            exit
+          end
+          opts.on("-h", "--help", "Show this.") { puts opts; exit }
+        end.parse!(argv)
+
+        options
+      end
+
+      def read_pairs_config
+        pairs_file_path = nil
+        candidate_file_path = '.pairs'
+        until pairs_file_path || File.expand_path(candidate_file_path) == '/.pairs' do
+          if File.exists?(candidate_file_path)
+            pairs_file_path = candidate_file_path
+          else
+            candidate_file_path = File.join("..", candidate_file_path)
+          end
+        end
+
+        unless pairs_file_path
+          raise GitPairException, <<-INSTRUCTIONS
+      Could not find a .pairs file. Create a YAML file in your project or home directory.
+      Format: <initials>: <name>[; <email>]
+      Example:
+      # .pairs - configuration for 'git pair'
+      # place in project or home directory
+      pairs:
+        eh: Edward Hieatt
+        js: Josh Susser; jsusser
+        sf: Serguei Filimonov; serguei
+      email:
+        prefix: pair
+        domain: pivotallabs.com
+      INSTRUCTIONS
+        end
+
+        YAML.load_file(pairs_file_path)
+      end
+
+      def read_author_info_from_config(config, initials_ary)
+        initials_ary.map do |initials|
+          config['pairs'][initials.downcase] or
+            raise GitPairException, "Couldn't find author name for initials: #{initials}. Add this person to the .pairs file in your project or home directory."
+        end
+      end
+
+      def build_email(emails, config)
+        if config.is_a?(Hash)
+          prefix = config['prefix'] if !config['no_solo_prefix'] or emails.size > 1
+          "#{([prefix] + emails).compact.join('+')}@#{config['domain']}"
+        else
+          config
+        end
+      end
+
+      def set_git_config(global, options)
+        options.each do |key,value|
+          config_key = "user.#{key}"
+          arg = value ? %Q{#{config_key} "#{value}"} : "--unset #{config_key}"
+          system(%Q{git config#{' --global' if global} #{arg}})
+        end
+      end
+
+      def report_git_settings(git_dir, key)
+        global = `git config --global --get-regexp '^user\.#{key}'`
+        local = `git config -f #{git_dir}/config --get-regexp '^user\.#{key}'`
+        if global.length > 0 && local.length > 0
+          puts "NOTE: Overriding global user.#{key} setting with local."
+        end
+        puts "global: #{global}" if global.length > 0
+        puts "local:  #{local}" if local.length > 0
+      end
+
+      def extract_author_names_and_email_ids_from_config(config, initials)
+        authors = read_author_info_from_config(config, initials)
+        authors.sort!.uniq! # FIXME
+        authors.map do |a|
+          full_name, email_id = a.split(";").map(&:strip)
+          email_id ||= full_name.split(' ').first.downcase
+          [full_name, email_id]
+        end.transpose
+      end
+
+      def no_email(config)
+        !config.key? 'email'
+      end
+    end
+  end
+end
