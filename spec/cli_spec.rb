@@ -146,7 +146,7 @@ describe "CLI" do
 
       it "can set n users as pair" do
         result = run "git pair ab bc cd"
-        expect_config result, "Aa Bb, Bb Cc and Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
+        expect_config result, "Aa Bb, Bb Cc, and Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
       end
 
       it "can set a user with apostrophes as pair" do
