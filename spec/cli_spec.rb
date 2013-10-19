@@ -149,6 +149,11 @@ describe "CLI" do
         expect_config result, "Aa Bb, Bb Cc and Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
       end
 
+      it "prints names, email addresses, and initials in alphabetical order" do
+        result = run "git pair ab cd bc"
+        expect_config result, "Aa Bb, Bb Cc and Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
+      end
+
       it "can set a user with apostrophes as pair" do
         write ".pairs", File.read(".pairs").sub("Aa Bb", "Pete O'Connor")
         result = run "git pair ab"
