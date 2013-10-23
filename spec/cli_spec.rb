@@ -1,5 +1,4 @@
 require "unindent"
-require 'open3'
 
 describe "CLI" do
   before :all do
