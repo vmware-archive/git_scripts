@@ -7,16 +7,14 @@ describe "CLI" do
     ENV["PATH"] = "#{File.join(File.dirname(__FILE__),"..","bin")}:#{ENV["PATH"]}"
   end
 
-  def run(cmd, options={})
-    Open3.popen2e(cmd) do |stdin, stdout_and_stderr, wait_thr|
-      output = stdout_and_stderr.read
-      return output if wait_thr.value.success?
-      return output if options[:fail]
+  def run(command, options={})
+    output = `#{command}`
+    return output if $?.success?
+    return output if options[:fail]
 
-      message = "Unable to run #{cmd.inspect} in #{Dir.pwd}.\n#{output}"
-      warn "ERROR: #{message}"
-      raise message unless options[:fail]
-    end
+    message = "Unable to run #{cmd.inspect} in #{Dir.pwd}.\n#{output}"
+    warn "ERROR: #{message}"
+    raise message
   end
 
   def write(file, content)
