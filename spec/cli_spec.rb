@@ -9,12 +9,13 @@ describe "CLI" do
 
   def run(cmd, options={})
     Open3.popen2e(cmd) do |stdin, stdout_and_stderr, wait_thr|
-      unless wait_thr.value.success?
-        message = "Unable to run #{cmd.inspect} in #{Dir.pwd}.\n#{stdout_and_stderr.read}"
-        warn "ERROR: #{message}"
-        raise message unless options[:fail]
-      end
-      stdout_and_stderr.read
+      output = stdout_and_stderr.read
+      return output if wait_thr.value.success?
+      return output if options[:fail]
+
+      message = "Unable to run #{cmd.inspect} in #{Dir.pwd}.\n#{output}"
+      warn "ERROR: #{message}"
+      raise message unless options[:fail]
     end
   end
 
