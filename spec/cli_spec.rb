@@ -1,4 +1,5 @@
 require "unindent"
+require 'open3'
 
 describe "CLI" do
   before :all do
@@ -6,10 +7,15 @@ describe "CLI" do
     ENV["PATH"] = "#{File.join(File.dirname(__FILE__),"..","bin")}:#{ENV["PATH"]}"
   end
 
-  def run(command, options={})
-    result = `#{command}`
-    raise "FAILED #{command} : #{result}" if $?.success? == !!options[:fail]
-    result
+  def run(cmd, options={})
+    Open3.popen2e(cmd) do |stdin, stdout_and_stderr, wait_thr|
+      unless wait_thr.value.success?
+        message = "Unable to run #{cmd.inspect} in #{Dir.pwd}.\n#{stdout_and_stderr.read}"
+        warn "ERROR: #{message}"
+        raise message unless options[:fail]
+      end
+      stdout_and_stderr.read
+    end
   end
 
   def write(file, content)
