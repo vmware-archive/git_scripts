@@ -32,7 +32,14 @@ describe "CLI" do
     ENV["HOME"] = File.expand_path("#{dir}/home")
 
     Dir.chdir dir do
-      run "touch a && git init && git add . && git commit -am 'initial'"
+      run "touch a"
+      run "git init"
+      run "git add ."
+      run "git config user.email 'rspec-tests@example.com'"
+      run "git config user.name 'rspec test suite'"
+      run "git commit -am 'initial'"
+      run "git config --unset user.email"
+      run "git config --unset user.name"
       example.run
     end
   end
