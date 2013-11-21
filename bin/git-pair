@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+$:.unshift File.expand_path('..', __FILE__)
 require 'yaml'
 require 'optparse'
 require 'pivotal_git_scripts/git_pair'
