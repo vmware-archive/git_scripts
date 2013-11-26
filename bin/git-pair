@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'yaml'
 require 'optparse'
-require 'pivotal_git_scripts/git_pair'
+require File.expand_path(File.join(File.dirname(__FILE__),'pivotal_git_scripts/git_pair'))
 
 PivotalGitScripts::GitPair.main(ARGV)
