@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'pivotal_git_scripts/git_pair'
+
+PivotalGitScripts::GitPair.commit(ARGV)

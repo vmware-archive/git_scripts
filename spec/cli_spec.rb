@@ -11,7 +11,7 @@ describe "CLI" do
     return output if $?.success?
     return output if options[:fail]
 
-    message = "Unable to run #{cmd.inspect} in #{Dir.pwd}.\n#{output}"
+    message = "Unable to run #{command.inspect} in #{Dir.pwd}.\n#{output}"
     warn "ERROR: #{message}"
     raise message
   end
@@ -276,6 +276,61 @@ describe "CLI" do
       it "prints instructions" do
         result = run "git pair ab", :fail => true
         result.should include("Could not find a .pairs file. Create a YAML file in your project or home directory.")
+      end
+    end
+  end
+
+  describe "pair-commit" do
+    context "when a pair has been set" do
+      before do
+        write ".pairs", <<-YAML.unindent
+          pairs:
+            ab: Aa Bb; abb
+            bc: Bb Cc; bcc
+            cd: Cc Dd; cdd
+
+          email:
+            prefix: the-pair
+            domain: the-host.com
+        YAML
+        run "git pair ab cd"
+      end
+
+      def git_pair_commit
+        run "echo #{rand(100)} > b"
+        run 'git add b'
+        run 'git pair-commit -m "Pair pare pear"'
+      end
+
+      it "makes a commit" do
+        git_pair_commit
+        output = run "git log -1"
+        output.should include("Pair pare pear")
+      end
+
+      it "sets the author name to the pair's names" do
+        git_pair_commit
+        output = run "git log -1 --pretty=%an"
+        output.strip.should eq("Aa Bb and Cc Dd")
+      end
+
+      it "randomly chooses from pair and set user.email" do
+        emails = 4.times.map do
+          git_pair_commit
+          (run "git log -1 --pretty=%ae").strip
+        end
+        emails.should include('abb@the-host.com', 'cdd@the-host.com')
+      end
+
+      context "when git options are passed" do
+        it "forwards those options to git" do
+          git_pair_commit
+          run 'git pair ab bc'
+          run 'git pair-commit --amend -C HEAD --reset-author'
+
+          output = run "git log -1 --pretty=%an"
+          output.strip.should eq("Aa Bb and Bb Cc")
+        end
       end
     end
   end

@@ -1,10 +1,17 @@
 require "pivotal_git_scripts/version"
+require 'yaml'
+require 'optparse'
 
 module PivotalGitScripts
   module GitPair
     def self.main(argv)
       runner = Runner.new
       runner.main(argv)
+    end
+
+    def self.commit(argv)
+      runner = Runner.new
+      runner.commit(argv)
     end
 
     class GitPairException < Exception; end
@@ -38,6 +45,19 @@ module PivotalGitScripts
       rescue GitPairException => e
         puts e.message
         exit 1
+      end
+
+      def commit(argv)
+        config = read_pairs_config
+        _, email_ids = extract_author_names_and_email_ids_from_config(config, current_pair_initials)
+        author_email = random_author_email(email_ids, config['email'])
+        puts "Committing under #{author_email}"
+        passthrough_args =  argv.map{|arg| "'#{arg}'"}.join(' ')
+        system "GIT_AUTHOR_EMAIL='#{author_email}' git commit #{passthrough_args}"
+      end
+
+      def current_pair_initials
+        `git config user.initials`.strip.split(' ')
       end
 
       def parse_cli_options(argv)
@@ -130,6 +150,11 @@ BANNER
         else
           config
         end
+      end
+
+      def random_author_email(email_ids, config)
+        author_id = email_ids.sample
+        "#{author_id}@#{config['domain']}"
       end
 
       def set_git_config(global, options)
