@@ -296,12 +296,6 @@ describe "CLI" do
         run "git pair ab cd"
       end
 
-      def git_pair_commit
-        run "echo #{rand(100)} > b"
-        run 'git add b'
-        run 'git pair-commit -m "Pair pare pear"'
-      end
-
       it "makes a commit" do
         git_pair_commit
         output = run "git log -1"
@@ -332,6 +326,18 @@ describe "CLI" do
           output.strip.should eq("Aa Bb and Bb Cc")
         end
       end
+    end
+
+    context "when no pair has been set" do
+      it "raises an exception" do
+        git_pair_commit.should include("Error: No pair set")
+      end
+    end
+
+    def git_pair_commit
+      run "echo #{rand(100)} > b"
+      run 'git add b'
+      run 'git pair-commit -m "Pair pare pear"', fail: true
     end
   end
 end

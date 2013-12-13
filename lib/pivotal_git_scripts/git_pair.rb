@@ -54,10 +54,15 @@ module PivotalGitScripts
         puts "Committing under #{author_email}"
         passthrough_args =  argv.map{|arg| "'#{arg}'"}.join(' ')
         system "GIT_AUTHOR_EMAIL='#{author_email}' git commit #{passthrough_args}"
+      rescue GitPairException => e
+        puts e.message
+        exit 1
       end
 
       def current_pair_initials
-        `git config user.initials`.strip.split(' ')
+        initials = `git config user.initials`.strip.split(' ')
+        raise GitPairException, 'Error: No pair set. Please set your pair with `git pair ...`' if initials.empty?
+        initials
       end
 
       def parse_cli_options(argv)
