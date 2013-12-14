@@ -48,6 +48,15 @@ module PivotalGitScripts
       end
 
       def commit(argv)
+        if argv[0] == '-h'
+          puts 'Usage: git pair-commit [options_for_git_commit]'
+          puts ''
+          puts 'Commits changes to the repository using `git commit`, but randomly chooses the author email from the'
+          puts 'member of the pair. In order for GitHub to assign credit for the commit activity, the user\'s email'
+          puts 'must be linked in their GitHub account.'
+          exit 0
+        end
+
         config = read_pairs_config
         _, email_ids = extract_author_names_and_email_ids_from_config(config, current_pair_initials)
         author_email = random_author_email(email_ids, config['email'])

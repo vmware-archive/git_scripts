@@ -280,8 +280,8 @@ describe "CLI" do
     end
   end
 
-  describe "pair-commit" do
-    context "when a pair has been set" do
+  describe 'pair-commit' do
+    context 'when a pair has been set' do
       before do
         write ".pairs", <<-YAML.unindent
           pairs:
@@ -309,7 +309,7 @@ describe "CLI" do
       end
 
       it "randomly chooses from pair and set user.email" do
-        emails = 4.times.map do
+        emails = 6.times.map do
           git_pair_commit
           (run "git log -1 --pretty=%ae").strip
         end
@@ -328,9 +328,16 @@ describe "CLI" do
       end
     end
 
-    context "when no pair has been set" do
-      it "raises an exception" do
-        git_pair_commit.should include("Error: No pair set")
+    context 'when no pair has been set' do
+      it 'raises an exception' do
+        git_pair_commit.should include('Error: No pair set')
+      end
+    end
+
+    context 'when -h flag is passed' do
+      it 'shows the help message' do
+        results = run 'git pair-commit -h'
+        results.should include('randomly chooses an email address from the pair to use for the commit')
       end
     end
 
