@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+$LOAD_PATH.unshift(File.dirname(__FILE__)) # this is required when running from /usr/local/bin
 require 'pivotal_git_scripts/git_pair'
 
 PivotalGitScripts::GitPair.commit(ARGV)
