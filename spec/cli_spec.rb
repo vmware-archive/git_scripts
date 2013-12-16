@@ -337,7 +337,7 @@ describe "CLI" do
     context 'when -h flag is passed' do
       it 'shows the help message' do
         results = run 'git pair-commit -h'
-        results.should include('randomly chooses an email address from the pair to use for the commit')
+        results.gsub(/\s+/, ' ').should include('randomly chooses the author email from the members of the pair')
       end
     end
 

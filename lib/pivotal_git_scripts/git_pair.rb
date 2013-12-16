@@ -52,7 +52,7 @@ module PivotalGitScripts
           puts 'Usage: git pair-commit [options_for_git_commit]'
           puts ''
           puts 'Commits changes to the repository using `git commit`, but randomly chooses the author email from the'
-          puts 'member of the pair. In order for GitHub to assign credit for the commit activity, the user\'s email'
+          puts 'members of the pair. In order for GitHub to assign credit for the commit activity, the user\'s email'
           puts 'must be linked in their GitHub account.'
           exit 0
         end
