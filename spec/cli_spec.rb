@@ -316,14 +316,36 @@ describe "CLI" do
         emails.should include('abb@the-host.com', 'cdd@the-host.com')
       end
 
-      context "when git options are passed" do
-        it "forwards those options to git" do
+      context 'when git options are passed' do
+        it 'forwards those options to git' do
           git_pair_commit
           run 'git pair ab bc'
           run 'git pair-commit --amend -C HEAD --reset-author'
 
           output = run "git log -1 --pretty=%an"
           output.strip.should eq("Aa Bb and Bb Cc")
+        end
+      end
+
+      context 'when the pair is set globally and the local repo has custom user name and email' do
+        before do
+          run 'git pair --global ab cd'
+          run "git config user.name 'Betty White'"
+          run "git config user.email 'betty@example.com'"
+        end
+
+        it 'still makes the commit with the correct user name' do
+          git_pair_commit
+
+          output = run "git log -1 --pretty=%an"
+          output.strip.should eq("Aa Bb and Cc Dd")
+        end
+
+        it 'still makes the commit with the correct user email' do
+          git_pair_commit
+
+          output = run "git log -1 --pretty=%ae"
+          %w(abb@the-host.com cdd@the-host.com).should include(output.strip)
         end
       end
     end

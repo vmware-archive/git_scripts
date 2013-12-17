@@ -28,7 +28,7 @@ module PivotalGitScripts
 
         if initials.any?
           author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
-          authors = [author_names[0..-2].join(", "), author_names.last].reject(&:empty?).join(" and ")
+          authors = pair_names(author_names)
           git_config = {:name => authors,  :initials => initials.sort.join(" ")}
           git_config[:email] = build_email(email_ids, config["email"]) unless no_email(config)
           set_git_config global,  git_config
@@ -58,11 +58,12 @@ module PivotalGitScripts
         end
 
         config = read_pairs_config
-        _, email_ids = extract_author_names_and_email_ids_from_config(config, current_pair_initials)
+        author_names, email_ids = extract_author_names_and_email_ids_from_config(config, current_pair_initials)
+        authors = pair_names(author_names)
         author_email = random_author_email(email_ids, config['email'])
         puts "Committing under #{author_email}"
         passthrough_args =  argv.map{|arg| "'#{arg}'"}.join(' ')
-        system "GIT_AUTHOR_EMAIL='#{author_email}' git commit #{passthrough_args}"
+        system "GIT_AUTHOR_NAME='#{authors}' GIT_AUTHOR_EMAIL='#{author_email}' git commit #{passthrough_args}"
       rescue GitPairException => e
         puts e.message
         exit 1
@@ -201,6 +202,12 @@ BANNER
 
       def no_email(config)
         !config.key? 'email'
+      end
+
+      private
+
+      def pair_names(author_names)
+        [author_names[0..-2].join(", "), author_names.last].reject(&:empty?).join(" and ")
       end
     end
   end
