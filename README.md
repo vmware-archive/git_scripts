@@ -48,6 +48,10 @@ Options are:
     -v, --version                    Show Version
     -h, --help                       Show this.
 
+## git-pair-commit
+
+Makes a git commit as normal, but chooses one of the pair members randomly to get credit for the commit on github (by setting the author email to that member's email address). The author name on the commit will list all members of the pair, as usual.
+
 ## git-project
 
     $ git project pivots
