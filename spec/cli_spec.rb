@@ -13,7 +13,7 @@ describe "CLI" do
 
     message = "Unable to run #{command.inspect} in #{Dir.pwd}.\n#{output}"
     warn "ERROR: #{message}"
-    raise message
+    raise message.inspect
   end
 
   def write(file, content)
@@ -318,10 +318,16 @@ describe "CLI" do
         output.should include("Pair pare pear")
       end
 
-      it "sets the author name to the pair's names" do
-        git_pair_commit
-        output = run "git log -1 --pretty=%an"
-        output.strip.should eq("Aa Bb and Cc Dd")
+      it "sets the author name to the pair's names, with the name of the author whose email is used put first" do
+        name_for_email = 6.times.each_with_object({}) do |_, hash|
+          git_pair_commit
+          hash[author_email_of_last_commit] = author_name_of_last_commit
+        end
+
+        name_for_email.should == {
+          'abb@the-host.com' => 'Aa Bb and Cc Dd',
+          'cdd@the-host.com' => 'Cc Dd and Aa Bb',
+        }
       end
 
       it "randomly chooses from pair and sets user.email" do
@@ -378,7 +384,7 @@ describe "CLI" do
 
     context 'when no pair has been set' do
       it 'raises an exception' do
-        git_pair_commit.should include('Error: No pair set')
+        git_pair_commit(raise_exception: false).should include('Error: No pair set')
       end
     end
 
@@ -389,10 +395,10 @@ describe "CLI" do
       end
     end
 
-    def git_pair_commit
+    def git_pair_commit(options={raise_exception: true})
       run "echo #{rand(100)} > b"
       run 'git add b'
-      run 'git pair-commit -m "Pair pare pear"', fail: true
+      run 'git pair-commit -m "Pair pare pear"', fail: !options[:raise_exception]
     end
   end
 end

@@ -1,6 +1,8 @@
-require "pivotal_git_scripts/version"
+require 'pivotal_git_scripts/version'
 require 'yaml'
 require 'optparse'
+require 'pivotal_git_scripts/author'
+require 'pivotal_git_scripts/pair'
 
 module PivotalGitScripts
   module GitPair
@@ -57,10 +59,12 @@ module PivotalGitScripts
           exit 0
         end
 
-        config = read_pairs_config
-        author_names, email_ids = extract_author_names_and_email_ids_from_config(config, current_pair_initials)
-        authors = pair_names(author_names)
-        author_email = random_author_email(email_ids, config['email'])
+        #config = read_pairs_config
+        #author_names, email_ids = extract_author_names_and_email_ids_from_config(config, current_pair_initials)
+        #authors = pair_names(author_names)
+        #author_email = random_author_email(email_ids, config['email'])
+        author_email = current_pair.email_address
+        authors = current_pair.compound_name
         puts "Committing under #{author_email}"
         passthrough_args =  argv.map{|arg| "'#{arg}'"}.join(' ')
         env_variables = "GIT_AUTHOR_NAME='#{authors}' GIT_AUTHOR_EMAIL='#{author_email}' GIT_COMMITTER_NAME='#{authors}' GIT_COMMITTER_EMAIL='#{author_email}'"
@@ -68,6 +72,11 @@ module PivotalGitScripts
       rescue GitPairException => e
         puts e.message
         exit 1
+      end
+
+      def current_pair
+        authors = Author.build_from_initials(current_pair_initials, read_pairs_config)
+        Pair.build_with_random_credited_author(authors)
       end
 
       def current_pair_initials
