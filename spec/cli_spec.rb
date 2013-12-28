@@ -296,6 +296,22 @@ describe "CLI" do
         run "git pair ab cd"
       end
 
+      def author_name_of_last_commit
+        (run "git log -1 --pretty=%an").strip
+      end
+
+      def author_email_of_last_commit
+        (run "git log -1 --pretty=%ae").strip
+      end
+
+      def committer_name_of_last_commit
+        (run "git log -1 --pretty=%cn").strip
+      end
+
+      def committer_email_of_last_commit
+        (run "git log -1 --pretty=%ce").strip
+      end
+
       it "makes a commit" do
         git_pair_commit
         output = run "git log -1"
@@ -308,12 +324,12 @@ describe "CLI" do
         output.strip.should eq("Aa Bb and Cc Dd")
       end
 
-      it "randomly chooses from pair and set user.email" do
+      it "randomly chooses from pair and sets user.email" do
         emails = 6.times.map do
           git_pair_commit
-          (run "git log -1 --pretty=%ae").strip
-        end
-        emails.should include('abb@the-host.com', 'cdd@the-host.com')
+          author_email_of_last_commit
+        end.uniq
+        emails.should =~ ['abb@the-host.com', 'cdd@the-host.com']
       end
 
       context 'when git options are passed' do
@@ -337,15 +353,25 @@ describe "CLI" do
         it 'still makes the commit with the correct user name' do
           git_pair_commit
 
-          output = run "git log -1 --pretty=%an"
-          output.strip.should eq("Aa Bb and Cc Dd")
+          author_name_of_last_commit.should eq("Aa Bb and Cc Dd")
         end
 
         it 'still makes the commit with the correct user email' do
           git_pair_commit
 
-          output = run "git log -1 --pretty=%ae"
-          %w(abb@the-host.com cdd@the-host.com).should include(output.strip)
+          %w(abb@the-host.com cdd@the-host.com).should include(author_email_of_last_commit)
+        end
+
+        it 'still makes the commit with the correct committer name' do
+          git_pair_commit
+
+          committer_name_of_last_commit.should eq("Aa Bb and Cc Dd")
+        end
+
+        it 'still makes the commit with the correct committer email' do
+          git_pair_commit
+
+          %w(abb@the-host.com cdd@the-host.com).should include(committer_email_of_last_commit)
         end
       end
     end

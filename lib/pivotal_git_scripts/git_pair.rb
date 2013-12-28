@@ -63,7 +63,8 @@ module PivotalGitScripts
         author_email = random_author_email(email_ids, config['email'])
         puts "Committing under #{author_email}"
         passthrough_args =  argv.map{|arg| "'#{arg}'"}.join(' ')
-        system "GIT_AUTHOR_NAME='#{authors}' GIT_AUTHOR_EMAIL='#{author_email}' git commit #{passthrough_args}"
+        env_variables = "GIT_AUTHOR_NAME='#{authors}' GIT_AUTHOR_EMAIL='#{author_email}' GIT_COMMITTER_NAME='#{authors}' GIT_COMMITTER_EMAIL='#{author_email}'"
+        system "#{env_variables} git commit #{passthrough_args}"
       rescue GitPairException => e
         puts e.message
         exit 1
