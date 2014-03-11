@@ -52,6 +52,21 @@ Options are:
 
 Makes a git commit as normal, but chooses one of the pair members randomly to get credit for the commit on github (by setting the author email to that member's email address). The author name on the commit will list all members of the pair, as usual.
 
+### Using git-pair-commit in RubyMine
+RubyMine already supports pointing at a custom location for your git executable in the Preferences -> Version Control -> Git
+![screen shot 2014-03-11 at 12 49 02 pm](https://f.cloud.github.com/assets/163532/2390097/49c3023e-a956-11e3-8aeb-dcba1a814309.png)
+The trick then is that `pair-commit` doesn't encompass all git functionality, so you can't just point RubyMine directly at it, you need something in the middle that will use `pair-commit` if the first arg is `commit`, otherwise just pass through. Here's a ruby script to do just that: 
+```ruby
+#!/usr/bin/env ruby
+
+if ARGV[1] == "commit"
+  system "git pair-commit #{ARGV[1..-1].join(" ")}"
+else
+  system "git #{ARGV.join(" ")}"
+end
+```
+Make sure it's executable. 
+
 ## git-project
 
     $ git project pivots
