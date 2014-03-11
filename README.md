@@ -59,11 +59,13 @@ The trick then is that `pair-commit` doesn't encompass all git functionality, so
 ```ruby
 #!/usr/bin/env ruby
 
-if ARGV[1] == "commit"
+exit_code = if ARGV[1] == "commit"
   system "git pair-commit #{ARGV[1..-1].join(" ")}"
 else
   system "git #{ARGV.join(" ")}"
 end
+
+exit exit_code
 ```
 Make sure it's executable. 
 
