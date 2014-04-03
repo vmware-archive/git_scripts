@@ -1,9 +1,9 @@
 language: ruby
 rvm:
+  - 2.1.1
   - 2.0.0
   - 1.9.3
   - 1.9.2
-  - 1.8.7
 # Fix weird issues from this Travis build:
 # https://travis-ci.org/pivotal/git_scripts/jobs/5501358
 # https://git.wiki.kernel.org/index.php/Git_FAQ#Git_commit_is_dying_telling_me_.22fatal:_empty_ident_.3Cuser.40myhost.3E_not_allowed.22.2C_what.27s_wrong.3F
