@@ -392,7 +392,7 @@ describe "CLI" do
     def git_pair_commit
       run "echo #{rand(100)} > b"
       run 'git add b'
-      run 'git pair-commit -m "Pair pare pear"', fail: true
+      run 'git pair-commit -m "Pair pare pear"', :fail => true
     end
   end
 end
