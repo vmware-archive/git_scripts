@@ -281,9 +281,8 @@ describe "CLI" do
   end
 
   describe 'pair-commit' do
-    context 'when a pair has been set' do
-      before do
-        write ".pairs", <<-YAML.unindent
+    before do
+      write ".pairs", <<-YAML.unindent
           pairs:
             ab: Aa Bb; abb
             bc: Bb Cc; bcc
@@ -292,7 +291,11 @@ describe "CLI" do
           email:
             prefix: the-pair
             domain: the-host.com
-        YAML
+      YAML
+    end
+
+    context 'when a pair has been set' do
+      before do
         run "git pair ab cd"
       end
 
