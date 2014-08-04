@@ -58,9 +58,10 @@ module PivotalGitScripts
         end
 
         config = read_pairs_config
-        author_names, email_ids = extract_author_names_and_email_ids_from_config(config, current_pair_initials)
+        author_details = extract_author_details_from_config(config, current_pair_initials)
+        author_names = author_details.keys.map { |i| author_details[i][:name] }
         authors = pair_names(author_names)
-        author_email = random_author_email(email_ids, config['email'])
+        author_email = random_author_email(author_details)
         puts "Committing under #{author_email}"
         passthrough_args =  argv.map{|arg| "'#{arg}'"}.join(' ')
         env_variables = "GIT_AUTHOR_NAME='#{authors}' GIT_AUTHOR_EMAIL='#{author_email}' GIT_COMMITTER_NAME='#{authors}' GIT_COMMITTER_EMAIL='#{author_email}'"
@@ -103,6 +104,9 @@ module PivotalGitScripts
             domain: pivotallabs.com
             # no_solo_prefix: true
           #global: true
+          # include the following section to set custom email addresses for users
+          #email_addresses:
+          #  zr: zach.robinson@example.com
 
 
       By default this affects the current project (.git/config).<br/>
@@ -168,9 +172,9 @@ BANNER
         end
       end
 
-      def random_author_email(email_ids, config)
-        author_id = email_ids.sample
-        "#{author_id}@#{config['domain']}"
+      def random_author_email(author_details)
+        author_id = author_details.keys.sample
+        author_details[author_id][:email]
       end
 
       def set_git_config(global, options)
@@ -203,6 +207,32 @@ BANNER
 
       def no_email(config)
         !config.key? 'email'
+      end
+
+      def extract_author_details_from_config(config, initials)
+        details = {}
+
+        initials.each do |i|
+          info = read_author_info_from_config(config, [i]).first
+
+          full_name, email_id = info.split(";").map(&:strip)
+          email_id ||= full_name.split(' ').first.downcase
+
+          email = read_custom_email_address_from_config(config, i)
+          email ||= "#{email_id}@#{config['email']['domain']}"
+
+          details[i] = {
+            :name => full_name,
+            :email => email
+          }
+        end
+
+        details
+      end
+
+      def read_custom_email_address_from_config(config, initial)
+        return nil unless config['email_addresses']
+        return config['email_addresses'][initial.downcase]
       end
 
       private

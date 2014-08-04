@@ -291,6 +291,9 @@ describe "CLI" do
           email:
             prefix: the-pair
             domain: the-host.com
+
+          email_addresses:
+            bc: test@other-host.com
       YAML
     end
 
@@ -375,6 +378,20 @@ describe "CLI" do
           git_pair_commit
 
           %w(abb@the-host.com cdd@the-host.com).should include(committer_email_of_last_commit)
+        end
+      end
+
+      context 'when one of the pair has a custom email address' do
+        before do
+          run 'git pair ab bc'
+        end
+
+        it 'uses that email address' do
+          emails = 6.times.map do
+            git_pair_commit
+            author_email_of_last_commit
+          end.uniq
+          emails.should =~ ['abb@the-host.com', 'test@other-host.com']
         end
       end
     end
