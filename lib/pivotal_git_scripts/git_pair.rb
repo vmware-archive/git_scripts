@@ -135,6 +135,8 @@ BANNER
           directory = File.absolute_path(File.join(directory, ".."))
           candidate_directories << directory
         end
+        home = File.absolute_path(ENV["HOME"])
+        candidate_directories << home unless candidate_directories.include? home
 
         pairs_file_path = candidate_directories.
           map { |d| File.join(d, ".pairs") }.

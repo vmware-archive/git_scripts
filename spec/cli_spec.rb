@@ -27,7 +27,7 @@ describe "CLI" do
 
     # use fake home for .ssh hacks
     run "mkdir #{dir}/home"
-    ENV["HOME"] = File.expand_path("#{dir}/home")
+    ENV["HOME"] = File.absolute_path("#{dir}/home")
 
     Dir.chdir dir do
       run "touch a"
@@ -269,13 +269,40 @@ describe "CLI" do
         end
       end
 
-      it "fails if it cannot find a pairs file" do
-        run "git pair ab", :fail => true
+      context "and without a .pairs file in the home directory" do
+        it "fails if it cannot find a pairs file" do
+          run "git pair ab", :fail => true
+        end
+
+        it "prints instructions" do
+          result = run "git pair ab", :fail => true
+          result.should include("Could not find a .pairs file. Create a YAML file in your project or home directory.")
+        end
       end
 
-      it "prints instructions" do
-        result = run "git pair ab", :fail => true
-        result.should include("Could not find a .pairs file. Create a YAML file in your project or home directory.")
+      context "but a .pairs file in the home directory" do
+        around do |example|
+          file = File.join(ENV["HOME"], ".pairs") 
+          write file, <<-YAML.unindent
+            pairs:
+              ab: Aa Bb
+              bc: Bb Cc
+              cd: Cc Dd
+
+            email:
+              prefix: the-pair
+              domain: the-host.com
+          YAML
+
+          example.run
+
+          FileUtils.rm file
+        end
+
+        it "loads the file" do
+          result = run "git pair ab"
+          expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
+        end
       end
     end
   end
