@@ -1,6 +1,7 @@
 require "pivotal_git_scripts/version"
 require 'yaml'
 require 'optparse'
+require 'pathname'
 
 module PivotalGitScripts
   module GitPair
@@ -126,15 +127,20 @@ BANNER
       end
 
       def read_pairs_config
-        pairs_file_path = nil
-        candidate_file_path = '.pairs'
-        until pairs_file_path || File.expand_path(candidate_file_path) == '/.pairs' do
-          if File.exists?(candidate_file_path)
-            pairs_file_path = candidate_file_path
-          else
-            candidate_file_path = File.join("..", candidate_file_path)
-          end
+        pairs_file_name = '.pairs'
+
+        directory = File.absolute_path(Dir.pwd)
+        candidate_directories = [directory]
+        while ! Pathname.new(directory).root? do
+          directory = File.absolute_path(File.join(directory, ".."))
+          candidate_directories << directory
         end
+        home = File.absolute_path(ENV["HOME"])
+        candidate_directories << home unless candidate_directories.include? home
+
+        pairs_file_path = candidate_directories.
+          map { |d| File.join(d, ".pairs") }.
+          find { |f| File.exists? f }
 
         unless pairs_file_path
           raise GitPairException, <<-INSTRUCTIONS
