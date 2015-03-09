@@ -49,4 +49,22 @@ describe PivotalGitScripts::GitPair::Runner do
       }.to raise_error(PivotalGitScripts::GitPair::GitPairException)
     end
   end
+
+  describe 'amends authors' do
+    it 'chooses last commit to amend author by default' do
+      config = {
+        'pairs' => {
+          'aa' => 'An Aardvark; aardvark',
+          'tt' => 'The Turtle; turtle'
+        },
+        'email' => {
+          'prefix' => 'pair',
+          'domain' => 'pivotal.io'
+        }
+      }
+
+      expect(runner).to receive(:system).with("git commit --amend --author=\"An Aardvark and The Turtle <pair+aardvark+turtle@pivotal.io>\"")
+      runner.amend_author_from_last_commit(config, ['aa', 'tt'])
+    end
+  end
 end
