@@ -1,12 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env ruby
 
-DIR=`git rev-parse --show-toplevel`
+dir = `git rev-parse --show-toplevel`.strip
 
-touch "${DIR}/.git/hooks/prepare-commit-msg"
+`touch "#{dir}/.git/hooks/prepare-commit-msg"`
 
-chmod +x "${DIR}/.git/hooks/prepare-commit-msg"
+`chmod "+x" "#{dir}/.git/hooks/prepare-commit-msg"`
 
-echo "#! /usr/bin/ruby
-
-File.write(ARGV[0], (ARGV[2] || '') + (\"\\n\\n[#$1]\"))" > "${DIR}/.git/hooks/prepare-commit-msg"
-
+`echo "#! /usr/bin/ruby\n\nFile.write(ARGV[0], (ARGV[2] || '') + (\\"\\\\\\\\n\\\\\\\\n[##{ARGV[0]}]\\"))" > "#{dir}/.git/hooks/prepare-commit-msg"`
