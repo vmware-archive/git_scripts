@@ -36,17 +36,22 @@ Create a `.pairs` config file in project root or your home folder.
     email:
       prefix: pair
       domain: pivotallabs.com
-      # no_solo_prefix: true
-    #global: true
+      no_solo_prefix: true
+    global: false  # Set to true for git-pair to change git configuration for all your projects
 
 
-By default this affects the current project (.git/config).<br/>
-Use the `--global` option or add `global: true` to your `.pairs` file to set the global git configuration for all projects (~/.gitconfig).
+By default this affects the current project (`.git/config`).
+Use the `--global` option or add `global: true` to your `.pairs` file to set the global git configuration for all projects (`~/.gitconfig`).
 
 Options are:
+
     -g, --global                     Modify global git options instead of local
     -v, --version                    Show Version
     -h, --help                       Show this.
+    
+When you're done pairing, change git's configuration to use your personal details.
+
+    git pair <your-initials>
 
 ## git-pair-commit
 
