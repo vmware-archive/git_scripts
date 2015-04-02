@@ -1,0 +1,12 @@
+#! /bin/sh
+
+DIR=`git rev-parse --show-toplevel`
+
+touch $DIR/.git/hooks/prepare-commit-msg
+
+chmod +x $DIR/.git/hooks/prepare-commit-msg
+
+echo "#! /usr/bin/ruby
+
+File.write(ARGV[0], (ARGV[2] || '') + (\"\\n\\n[#$1]\"))" > $DIR/.git/hooks/prepare-commit-msg
+
