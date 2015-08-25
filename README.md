@@ -6,11 +6,11 @@ These scripts are helpers for managing developer workflow when using git repos h
 
 ## Gem Installation
 
-    $ gem install pivotal_git_scripts
+    gem install pivotal_git_scripts
 
 ## System Wide Installation
 
-    $ cd /usr/local/bin && curl -L http://github.com/pivotal/git_scripts/tarball/master | gunzip | tar xvf - --strip=2
+    cd /usr/local/bin && curl -L http://github.com/pivotal/git_scripts/tarball/master | gunzip | tar xvf - --strip=2
 
 ## git-about
 
