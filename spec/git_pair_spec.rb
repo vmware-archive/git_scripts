@@ -88,7 +88,22 @@ describe 'Whether or not the settings are applied globally' do
     expect(@git).to have_received(:config).with(hash_including(:global => true))
   end
   
-  it 'default to false'
+  it 'defaults to false' do
+    config_with_global_missing = {
+      'pairs' => {
+        'bb' => "Ben Biddington; ben.biddington",
+        'rf' => "Richard Bizzness; ricky.bizzness",
+      },
+      'email' => {
+        'domain' => 'aol.com',
+        'no_solo_prefix' => true}
+    }
+    
+    UseCases::GitPair.apply(:initials => ['bb', 'rf'], :git => @git, :config => config_with_global_missing)
+
+    expect(@git).to have_received(:config).with(hash_including(:global => false))
+  end
+  
   it 'can be supplied as an option'
 end
 
