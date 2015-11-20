@@ -5,6 +5,24 @@ describe 'How to specify what value to use for user.email' do
   before do
     @git = MockGitConfig.new
   end
+
+  it 'sets author.email to the email address for whomever you specify as the author in the email settings' do
+    config = {
+      'pairs' => {
+        'bb' => "Ben Biddington; ben.biddington",
+        'rf' => "Richard Bizzness; ricky.bizzness",
+        },
+      'email' => {
+        'author' => 'rf',
+        'domain' => 'aol.com'}
+    }
+    
+    UseCases::GitPair.apply(:initials => ['bb','rf'], :git => @git.fun, :config => config)
+    
+    @git.must_have_received(hash_including(:email => "ricky.bizzness@aol.com"))
+  end
+
+  it 'does what when email author alias is not present in pairs?'
   
   it 'sets author.email to a combination of email addresses by default' do
     config = {
