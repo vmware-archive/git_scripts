@@ -108,9 +108,7 @@ describe '\`git pair rb bb\`' do
   end
 
   it 'does not matter what order initials are supplied' do
-    git = spy("represents the current git repo")
-    
-    UseCases::GitPair.apply(:initials => ['rf', 'bb'], :git => git, :config => @config)
+    UseCases::GitPair.apply(:initials => ['rf', 'bb'], :git => @git.fun, :config => @config)
 
     @git.must_have_received(hash_including(
       :name => "Ben Biddington and Richard Bizzness",
