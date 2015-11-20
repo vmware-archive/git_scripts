@@ -4,7 +4,7 @@ module UseCases
   class GitPair
     class << self
       def apply(opts={})
-        git      = opts[:git]      || fail("You need to supply the :git port")
+        git      = opts[:git]      || fail("You need to supply the :git config port")
         config   = opts[:config]   || fail("You need to supply :config. (The current git pair settings.)")
         initials = opts[:initials] || []
         global   = opts[:global]   || config['global'] || false
@@ -22,7 +22,7 @@ module UseCases
           puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
         end
 
-        git.config git_config.merge({:global => global})
+        git.call git_config.merge({:global => global})
       end
 
       private
@@ -66,9 +66,23 @@ end
 
 describe 'That you can choose that the author email be set to the guest'
 
+class MockGitConfig
+  include RSpec::Matchers
+  
+  def fun
+    ->(*args) do
+      @args = args
+    end
+  end
+
+  def must_have_received(expected={})
+    expect(@args).to include(expected)
+  end
+end
+
 describe 'Whether or not the settings are applied globally' do
   before do
-    @git = spy("represents the current git repo")
+    @git = MockGitConfig.new
   end
   
   it 'can be set via config' do
@@ -83,9 +97,9 @@ describe 'Whether or not the settings are applied globally' do
         'no_solo_prefix' => true}
     }
     
-    UseCases::GitPair.apply(:initials => ['bb', 'rf'], :git => @git, :config => config)
+    UseCases::GitPair.apply(:initials => ['bb', 'rf'], :git => @git.fun, :config => config)
 
-    expect(@git).to have_received(:config).with(hash_including(:global => true))
+    @git.must_have_received(hash_including(:global => true))
   end
   
   it 'defaults to false' do
@@ -99,9 +113,9 @@ describe 'Whether or not the settings are applied globally' do
         'no_solo_prefix' => true}
     }
     
-    UseCases::GitPair.apply(:initials => ['bb', 'rf'], :git => @git, :config => config_with_global_missing)
+    UseCases::GitPair.apply(:initials => ['bb', 'rf'], :git => @git.fun, :config => config_with_global_missing)
 
-    expect(@git).to have_received(:config).with(hash_including(:global => false))
+    @git.must_have_received(hash_including(:global => false))
   end
   
   it 'can be supplied as an option' do
@@ -118,17 +132,17 @@ describe 'Whether or not the settings are applied globally' do
     UseCases::GitPair.apply(
       :global => true,
       :initials => ['bb', 'rf'],
-      :git => @git,
+      :git => @git.fun,
       :config => config_with_global_missing)
 
-    expect(@git).to have_received(:config).with(hash_including(:global => true))
+    @git.must_have_received(hash_including(:global => true))
   end
 end
 
 describe '\`git pair\` (i.e., when you omit initials)' do
   before do
-    @git = spy("represents the current git repo")
-
+    @git = MockGitConfig.new
+    
     @config = {
       'pairs' => {
         'bb' => "Ben Biddington; ben.biddington",
@@ -139,17 +153,17 @@ describe '\`git pair\` (i.e., when you omit initials)' do
         'no_solo_prefix' => true}
     }
     
-    UseCases::GitPair.apply(:initials => [], :git => @git, :config => @config)
+    UseCases::GitPair.apply(:initials => [], :git => @git.fun, :config => @config)
   end
 
   it 'sets author.{name,email} to no value' do
-    expect(@git).to have_received(:config).with(hash_including(:name => nil, :email => nil))
+    @git.must_have_received(hash_including(:name => nil, :email => nil))
   end
 end
 
 describe '\`git pair rb bb\`' do
   before do
-    @git = spy("represents the current git repo")
+    @git = MockGitConfig.new
 
     @config = {
       'pairs' => {
@@ -161,15 +175,15 @@ describe '\`git pair rb bb\`' do
         'no_solo_prefix' => true}
     }
     
-    UseCases::GitPair.apply(:initials => ['bb','rf'], :git => @git, :config => @config)
+    UseCases::GitPair.apply(:initials => ['bb','rf'], :git => @git.fun, :config => @config)
   end
   
   it 'sets author.name to combination of authors' do
-    expect(@git).to have_received(:config).with(hash_including(:name => "Ben Biddington and Richard Bizzness"))
+    @git.must_have_received(hash_including(:name => "Ben Biddington and Richard Bizzness"))
   end
 
   it 'sets author.email to a combination of email addresses' do
-    expect(@git).to have_received(:config).with(hash_including(:email => "ben.biddington+ricky.bizzness@aol.com"))
+    @git.must_have_received(hash_including(:email => "ben.biddington+ricky.bizzness@aol.com"))
   end
 
   it 'does not matter what order initials are supplied' do
@@ -177,7 +191,7 @@ describe '\`git pair rb bb\`' do
     
     UseCases::GitPair.apply(:initials => ['rf', 'bb'], :git => git, :config => @config)
 
-    expect(git).to have_received(:config).with(hash_including(
+    @git.must_have_received(hash_including(
       :name => "Ben Biddington and Richard Bizzness",
       :email => "ben.biddington+ricky.bizzness@aol.com"))
   end
