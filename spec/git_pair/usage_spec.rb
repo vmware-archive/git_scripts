@@ -65,8 +65,6 @@ module UseCases
   end
 end
 
-describe 'That you can choose that the author email be set to the guest'
-
 describe 'Whether or not the settings are applied globally' do
   before do
     @git = MockGitConfig.new
