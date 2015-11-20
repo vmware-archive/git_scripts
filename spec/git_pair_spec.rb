@@ -7,13 +7,21 @@ module UseCases
         git    = opts[:git] || fail("You need to supply the :git port")
         config = opts[:config] || fail("You need to supply :config. (The current git pair settings.)")
         initials = opts[:initials] || []
+        global   = opts[:global] || false
         
-        author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
-        authors = pair_names(author_names)
-        git_config = {:name => authors,  :initials => initials.sort.join(" ")}
+        if initials.any?
+          author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
+          authors = pair_names(author_names)
 
-        git_config[:email] = build_email(email_ids, config["email"]) unless no_email(config)
-        
+          git_config = {:name => authors,  :initials => initials.sort.join(" ")}
+          git_config[:email] = build_email(email_ids, config["email"]) unless no_email(config)
+        else
+          git_config = {:name => nil,  :initials => nil}
+          git_config[:email] = nil unless no_email(config)
+
+          puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
+        end
+
         git.config git_config
       end
 
@@ -53,6 +61,29 @@ module UseCases
         end
       end
     end
+  end
+end
+
+describe "\`git pair\` (i.e., when you omit initials)" do
+  before do
+    @git = spy("represents the current git repo")
+
+    @config = {
+      'pairs' => {
+        'bb' => "Ben Biddington; ben.biddington",
+        'rf' => "Richard Bizzness; ricky.bizzness",
+      
+      },
+      'email' => {
+        'domain' => 'aol.com',
+        'no_solo_prefix' => true}
+    }
+    
+    UseCases::GitPair.apply(:initials => [], :git => @git, :config => @config)
+  end
+
+  it "sets author.{name,email} to no value" do
+    expect(@git).to have_received(:config).with(hash_including(:name => nil, :email => nil))
   end
 end
 
