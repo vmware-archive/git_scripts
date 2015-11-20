@@ -1,5 +1,46 @@
 require 'pivotal_git_scripts/git_pair'
 
+module UseCases
+  class GitPair
+    class << self
+      def apply(opts={})
+        git    = opts[:git] || fail("You need to supply the :git port")
+        config = opts[:config] || fail("You need to supply :config. (The current git pair settings.)")
+
+        #author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
+        authors = pair_names(config.map{|c| c[:name]})
+        #git_config              = {:name => authors,  :initials => initials.sort.join(" ")}
+
+        git.config(:author_name => authors)
+      end
+
+      private
+
+      def pair_names(author_names) # [!] Duplicated from lib/pivotal_git_scripts/git_pair.rb
+        [author_names[0..-2].join(", "), author_names.last].reject(&:empty?).join(" and ")
+      end
+    end
+  end
+end
+
+describe "\`git pair rb bb\`" do
+  it 'sets author.name to combination of authors' do
+    git = double("represents the current git repo")
+
+    expect(git).to receive(:config).with({
+      :author_name => "Ben Biddington and Richard Bizzness"})
+
+    config = [
+      {:initials => 'bb', :name => "Ben Biddington", :email => "ben.biddington@aol.com"},
+      {:initials => 'rf', :name => "Richard Bizzness", :email => "ricky.bizzness@eire.com"}
+    ]
+    
+    UseCases::GitPair.apply(:initials => ['bb' 'rf'], :git => git, :config => config)
+  end
+  
+  describe 'that you may configure it such that \`git pair\` sets auther email, too'
+end
+
 describe PivotalGitScripts::GitPair::Runner do
   let(:runner) { described_class.new }
 
