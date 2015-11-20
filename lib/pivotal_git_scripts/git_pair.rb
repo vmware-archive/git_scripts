@@ -32,19 +32,6 @@ module PivotalGitScripts
           :config   => config,
           :global   => global)
         
-        #if initials.any?
-        #  author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
-        #  authors = pair_names(author_names)
-        #  git_config = {:name => authors,  :initials => initials.sort.join(" ")}
-        #  git_config[:email] = build_email(email_ids, config["email"]) unless no_email(config)
-        #  set_git_config global,  git_config
-        #else
-        #  git_config = {:name => nil,  :initials => nil}
-        #  git_config[:email] = nil unless no_email(config)
-        #  set_git_config global, git_config
-        #  puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
-        #end
-
         [:name, :email, :initials].each do |key|
           report_git_settings(git_dir, key)
         end
