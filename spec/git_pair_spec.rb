@@ -24,17 +24,19 @@ module UseCases
 end
 
 describe "\`git pair rb bb\`" do
-  it 'sets author.name to combination of authors' do
-    git = spy("represents the current git repo")
+  before do
+    @git = spy("represents the current git repo")
 
     config = [
       {:initials => 'bb', :name => "Ben Biddington", :email => "ben.biddington@aol.com"},
       {:initials => 'rf', :name => "Richard Bizzness", :email => "ricky.bizzness@eire.com"}
     ]
     
-    UseCases::GitPair.apply(:initials => ['bb' 'rf'], :git => git, :config => config)
-
-    expect(git).to have_received(:config).with({
+    UseCases::GitPair.apply(:initials => ['bb' 'rf'], :git => @git, :config => config)
+  end
+  
+  it 'sets author.name to combination of authors' do
+    expect(@git).to have_received(:config).with({
       :author_name => "Ben Biddington and Richard Bizzness"})
   end
   
