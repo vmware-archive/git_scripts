@@ -18,7 +18,7 @@ module PivotalGitScripts
 
             git_config = {:name => authors, :initials => initials.sort.join(" ")}
 
-            unless no_email(config)
+            unless no_email?(config)
               email_config = config['email']
             
               if email_config.is_a?(Hash) && email_config.key?('author')
@@ -29,9 +29,9 @@ module PivotalGitScripts
             end
           else
             git_config = {:name => nil,  :initials => nil}
-            git_config[:email] = nil unless no_email(config)
+            git_config[:email] = nil unless no_email?(config)
 
-            puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
+            puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email?(config)}user.initials" # @todo: this is another port
           end
 
           git.call git_config.merge({:global => global})
@@ -54,7 +54,7 @@ module PivotalGitScripts
           PivotalGitScripts::GitPair::Runner.new.read_author_info_from_config config, initials_ary
         end
         
-        def no_email(config)
+        def no_email?(config)
           !config.key? 'email'
         end
       
