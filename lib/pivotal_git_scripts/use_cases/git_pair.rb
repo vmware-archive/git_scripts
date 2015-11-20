@@ -50,7 +50,7 @@ module PivotalGitScripts
           end.transpose
         end
 
-        def read_author_info_from_config(config, initials_ary) # [!] Duplicated from lib/pivotal_git_scripts/git_pair.rb
+        def read_author_info_from_config(config, initials_ary)
           PivotalGitScripts::GitPair::Runner.new.read_author_info_from_config config, initials_ary
         end
         
