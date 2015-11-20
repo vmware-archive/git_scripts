@@ -161,15 +161,6 @@ BANNER
         end
       end
 
-      def build_email(emails, config)
-        if config.is_a?(Hash)
-          prefix = config['prefix'] if !config['no_solo_prefix'] or emails.size > 1
-          "#{([prefix] + emails).compact.join('+')}@#{config['domain']}"
-        else
-          config
-        end
-      end
-
       def random_author_email(author_details)
         author_id = author_details.keys.sample
         author_details[author_id][:email]
@@ -191,20 +182,6 @@ BANNER
         end
         puts "global: #{global}" if global.length > 0
         puts "local:  #{local}" if local.length > 0
-      end
-
-      def extract_author_names_and_email_ids_from_config(config, initials)
-        authors = read_author_info_from_config(config, initials)
-        authors.sort!.uniq! # FIXME
-        authors.map do |a|
-          full_name, email_id = a.split(";").map(&:strip)
-          email_id ||= full_name.split(' ').first.downcase
-          [full_name, email_id]
-        end.transpose
-      end
-
-      def no_email(config)
-        !config.key? 'email'
       end
 
       def extract_author_details_from_config(config, initials)
