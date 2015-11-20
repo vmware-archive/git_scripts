@@ -1,5 +1,7 @@
 require 'pivotal_git_scripts/git_pair'
 
+include PivotalGitScripts
+
 describe PivotalGitScripts::GitPair::Runner do
   let(:runner) { described_class.new }
 
@@ -46,7 +48,7 @@ describe PivotalGitScripts::GitPair::Runner do
     it 'exits when initials cannot be found' do
       expect {
         runner.read_author_info_from_config({"pairs" => {}}, ['aa'])
-      }.to raise_error(PivotalGitScripts::GitPair::GitPairException)
+      }.to raise_error(GitPairException)
     end
   end
 end

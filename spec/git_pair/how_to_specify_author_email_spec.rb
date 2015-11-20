@@ -1,6 +1,8 @@
 require 'pivotal_git_scripts/use_cases/git_pair'
 require 'support'
 
+include PivotalGitScripts
+
 describe 'How to specify what value to use for user.email' do
   before do
     @git = MockGitConfig.new
