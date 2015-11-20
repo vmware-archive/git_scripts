@@ -4,10 +4,10 @@ module UseCases
   class GitPair
     class << self
       def apply(opts={})
-        git    = opts[:git] || fail("You need to supply the :git port")
-        config = opts[:config] || fail("You need to supply :config. (The current git pair settings.)")
+        git      = opts[:git] || fail("You need to supply the :git port")
+        config   = opts[:config] || fail("You need to supply :config. (The current git pair settings.)")
         initials = opts[:initials] || []
-        global   = opts[:global] || false
+        global   = opts[:global] || config['global'] || false
         
         if initials.any?
           author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
@@ -22,7 +22,7 @@ module UseCases
           puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
         end
 
-        git.config git_config
+        git.config git_config.merge({:global => global})
       end
 
       private
@@ -64,7 +64,35 @@ module UseCases
   end
 end
 
-describe "\`git pair\` (i.e., when you omit initials)" do
+describe 'That you can choose that the author email be set to the guest'
+
+describe 'Whether or not the settings are applied globally' do
+  before do
+    @git = spy("represents the current git repo")
+  end
+  
+  it 'can be set via config' do
+    config = {
+      'global' => true,
+      'pairs' => {
+        'bb' => "Ben Biddington; ben.biddington",
+        'rf' => "Richard Bizzness; ricky.bizzness",
+      },
+      'email' => {
+        'domain' => 'aol.com',
+        'no_solo_prefix' => true}
+    }
+    
+    UseCases::GitPair.apply(:initials => ['bb', 'rf'], :git => @git, :config => config)
+
+    expect(@git).to have_received(:config).with(hash_including(:global => true))
+  end
+  
+  it 'default to false'
+  it 'can be supplied as an option'
+end
+
+describe '\`git pair\` (i.e., when you omit initials)' do
   before do
     @git = spy("represents the current git repo")
 
@@ -82,12 +110,12 @@ describe "\`git pair\` (i.e., when you omit initials)" do
     UseCases::GitPair.apply(:initials => [], :git => @git, :config => @config)
   end
 
-  it "sets author.{name,email} to no value" do
+  it 'sets author.{name,email} to no value' do
     expect(@git).to have_received(:config).with(hash_including(:name => nil, :email => nil))
   end
 end
 
-describe "\`git pair rb bb\`" do
+describe '\`git pair rb bb\`' do
   before do
     @git = spy("represents the current git repo")
 
