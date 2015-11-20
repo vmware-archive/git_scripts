@@ -4,10 +4,10 @@ module UseCases
   class GitPair
     class << self
       def apply(opts={})
-        git      = opts[:git] || fail("You need to supply the :git port")
-        config   = opts[:config] || fail("You need to supply :config. (The current git pair settings.)")
+        git      = opts[:git]      || fail("You need to supply the :git port")
+        config   = opts[:config]   || fail("You need to supply :config. (The current git pair settings.)")
         initials = opts[:initials] || []
-        global   = opts[:global] || config['global'] || false
+        global   = opts[:global]   || config['global'] || false
         
         if initials.any?
           author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
@@ -133,8 +133,7 @@ describe '\`git pair\` (i.e., when you omit initials)' do
       'pairs' => {
         'bb' => "Ben Biddington; ben.biddington",
         'rf' => "Richard Bizzness; ricky.bizzness",
-      
-      },
+        },
       'email' => {
         'domain' => 'aol.com',
         'no_solo_prefix' => true}
@@ -156,8 +155,7 @@ describe '\`git pair rb bb\`' do
       'pairs' => {
         'bb' => "Ben Biddington; ben.biddington",
         'rf' => "Richard Bizzness; ricky.bizzness",
-      
-      },
+        },
       'email' => {
         'domain' => 'aol.com',
         'no_solo_prefix' => true}
