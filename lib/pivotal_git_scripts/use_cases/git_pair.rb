@@ -9,7 +9,7 @@ module PivotalGitScripts
           config   = opts[:config]   || fail("You need to supply :config. (The current git pair settings.)")
           initials = opts[:initials] || []
           global   = opts[:global]   || config['global'] || false
-        
+          
           if initials.any?
             author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
             authors = pair_names(author_names)
@@ -63,7 +63,7 @@ module PivotalGitScripts
           [author_names[0..-2].join(", "), author_names.last].reject(&:empty?).join(" and ")
         end
 
-        def build_email(emails, config) # [!] Duplicated from lib/pivotal_git_scripts/git_pair.rb
+        def build_email(emails, config)
           if config.is_a?(Hash)          
             prefix = config['prefix'] if !config['no_solo_prefix'] or emails.size > 1
             
