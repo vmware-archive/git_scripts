@@ -1,5 +1,19 @@
 require 'pivotal_git_scripts/git_pair'
 
+class MockGitConfig
+  include RSpec::Matchers
+  
+  def fun
+    ->(*args) do
+      @args = args
+    end
+  end
+
+  def must_have_received(expected={})
+    expect(@args).to include(expected)
+  end
+end
+
 module UseCases
   class GitPair
     class << self
@@ -65,20 +79,6 @@ module UseCases
 end
 
 describe 'That you can choose that the author email be set to the guest'
-
-class MockGitConfig
-  include RSpec::Matchers
-  
-  def fun
-    ->(*args) do
-      @args = args
-    end
-  end
-
-  def must_have_received(expected={})
-    expect(@args).to include(expected)
-  end
-end
 
 describe 'Whether or not the settings are applied globally' do
   before do
