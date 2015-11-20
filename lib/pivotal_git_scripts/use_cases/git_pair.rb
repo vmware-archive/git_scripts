@@ -1,3 +1,5 @@
+require_relative '../git_pair'
+
 module PivotalGitScripts
   class GitPairException < Exception; end
   
@@ -9,7 +11,7 @@ module PivotalGitScripts
           config   = opts[:config]   || fail("You need to supply :config. (The current git pair settings.)")
           initials = opts[:initials] || []
           global   = opts[:global]   || config['global'] || false
-          
+
           if initials.any?
             author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
             authors = pair_names(author_names)
@@ -37,7 +39,7 @@ module PivotalGitScripts
         
         private
         
-        def extract_author_names_and_email_ids_from_config(config, initials) # [!] Duplicated from lib/pivotal_git_scripts/git_pair.rb
+        def extract_author_names_and_email_ids_from_config(config, initials)
           authors = read_author_info_from_config(config, initials)
           authors.sort!.uniq! # FIXME
 
@@ -49,10 +51,7 @@ module PivotalGitScripts
         end
 
         def read_author_info_from_config(config, initials_ary) # [!] Duplicated from lib/pivotal_git_scripts/git_pair.rb
-          initials_ary.map do |initials|
-            config['pairs'][initials.downcase] or
-              raise GitPairException, "Couldn't find author name for initials: #{initials}. Add this person to the .pairs file in your project or home directory."
-          end
+          PivotalGitScripts::GitPair::Runner.new.read_author_info_from_config config, initials_ary
         end
         
         def no_email(config)
