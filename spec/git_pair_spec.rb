@@ -25,10 +25,7 @@ end
 
 describe "\`git pair rb bb\`" do
   it 'sets author.name to combination of authors' do
-    git = double("represents the current git repo")
-
-    expect(git).to receive(:config).with({
-      :author_name => "Ben Biddington and Richard Bizzness"})
+    git = spy("represents the current git repo")
 
     config = [
       {:initials => 'bb', :name => "Ben Biddington", :email => "ben.biddington@aol.com"},
@@ -36,6 +33,9 @@ describe "\`git pair rb bb\`" do
     ]
     
     UseCases::GitPair.apply(:initials => ['bb' 'rf'], :git => git, :config => config)
+
+    expect(git).to have_received(:config).with({
+      :author_name => "Ben Biddington and Richard Bizzness"})
   end
   
   describe 'that you may configure it such that \`git pair\` sets auther email, too'
