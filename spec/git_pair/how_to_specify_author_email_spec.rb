@@ -8,7 +8,7 @@ describe 'How to specify what value to use for user.email' do
     @git = MockGitConfig.new
   end
 
-  it '[START HERE] a better way to go may be to specify "me" because the author needs to vary with the pair -- it cannot be a static setting' do
+  it "uses the 'me' config setting to determine the author.email" do
     config = {
       'me' => 'bb',
       'pairs' => {
@@ -26,22 +26,6 @@ describe 'How to specify what value to use for user.email' do
     UseCases::GitPair.apply(:initials => ['bb','tb'], :git => @git.fun, :config => config)
     
     @git.must_have_received(hash_including(:email => "mud.man@aol.com"))
-  end
-  
-  it '[NO-LONGER-VALID] sets author.email to the email address for whomever you specify as the author in the email settings' do
-    config = {
-      'pairs' => {
-        'bb' => "Ben Biddington; ben.biddington",
-        'rf' => "Richard Bizzness; ricky.bizzness",
-        },
-      'email' => {
-        'author' => 'rf',
-        'domain' => 'aol.com'}
-    }
-    
-    UseCases::GitPair.apply(:initials => ['bb','rf'], :git => @git.fun, :config => config)
-    
-    @git.must_have_received(hash_including(:email => "ricky.bizzness@aol.com"))
   end
 
   it 'sets author.email to a combination of email addresses by default' do

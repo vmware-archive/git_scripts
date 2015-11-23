@@ -21,8 +21,10 @@ module PivotalGitScripts
             unless no_email?(config)
               email_config = config['email']
             
-              if email_config.is_a?(Hash) && email_config.key?('author')
-                git_config[:email] = email_by(email_config['author'], config)
+              if email_config.is_a?(Hash) && config.key?('me')
+                partner_initials = partner_initials(config, initials)
+                
+                git_config[:email] = email_for(partner_initials, config)
               else
                 git_config[:email] = build_email(email_ids, config["email"]) 
               end
@@ -38,6 +40,11 @@ module PivotalGitScripts
         end
         
         private
+        
+        def partner_initials(config, initials)
+          me = config['me']
+          initials.select{|it| it != me}.first
+        end
         
         def extract_author_names_and_email_ids_from_config(config, initials)
           authors = read_author_info_from_config(config, initials)
@@ -72,8 +79,9 @@ module PivotalGitScripts
           end
         end
         
-        def email_by(initials, config)
+        def email_for(initials, config)
           _, email = name_and_email(config['pairs'][initials.downcase])
+          
           "#{email}@#{config['email']['domain']}"
         end
         
