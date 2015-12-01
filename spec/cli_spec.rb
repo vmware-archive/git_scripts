@@ -80,6 +80,15 @@ describe "CLI" do
     end
   end
 
+  describe "wip" do
+
+    it "prints help" do
+      result = run "git-wip --help"
+      result.should include("Usage: git wip [branch-name] [options]")
+    end
+
+  end
+
   describe "pair" do
     def expect_config(result, name, initials, email, options={})
       global = "cd /tmp && " if options[:global]
