@@ -19,9 +19,6 @@ module PivotalGitScripts
 
     class Runner
       def main(argv)
-        git_dir = `git rev-parse --git-dir`.chomp
-        exit 1 if git_dir.empty?
-
         options = parse_cli_options(argv)
         initials = argv
         config = read_pairs_config
@@ -40,6 +37,7 @@ module PivotalGitScripts
           puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
         end
 
+        git_dir = `git rev-parse --git-dir`.chomp if system('git rev-parse 2>/dev/null')
         [:name, :email, :initials].each do |key|
           report_git_settings(git_dir, key)
         end
@@ -193,12 +191,16 @@ BANNER
 
       def report_git_settings(git_dir, key)
         global = `git config --global --get-regexp '^user\.#{key}'`
-        local = `git config -f #{git_dir}/config --get-regexp '^user\.#{key}'`
-        if global.length > 0 && local.length > 0
+        if git_dir
+          local = `git config -f #{git_dir}/config --get-regexp '^user\.#{key}'`
+        end
+
+        if global.length > 0 && local && local.length > 0
           puts "NOTE: Overriding global user.#{key} setting with local."
         end
+
         puts "global: #{global}" if global.length > 0
-        puts "local:  #{local}" if local.length > 0
+        puts "local:  #{local}" if local && local.length > 0
       end
 
       def extract_author_names_and_email_ids_from_config(config, initials)
