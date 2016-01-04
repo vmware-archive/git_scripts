@@ -21,8 +21,8 @@ These scripts are helpers for managing developer workflow when using git repos h
 Configures git authors when pair programming.
 
     git pair sp js
-    user.name=Josh Susser & Sam Pierson
-    user.email=pair+jsusser+sam@pivotallabs.com
+    git config user.name=Josh Susser & Sam Pierson
+    git config user.email=pair+jsusser+sam@pivotallabs.com
 
 
 Create a `.pairs` config file in project root or your home folder.
@@ -48,7 +48,7 @@ Options are:
     -g, --global                     Modify global git options instead of local
     -v, --version                    Show Version
     -h, --help                       Show this.
-    
+
 When you're done pairing, change git's configuration to use your personal details.
 
     git pair <your-initials>
