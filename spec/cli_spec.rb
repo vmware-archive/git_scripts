@@ -428,7 +428,7 @@ describe "CLI" do
 
       context 'when gpg keys are configured' do
         before do
-          run 'cat ../gpg-keys.asc | gpg --import >/dev/null 2>&1', { fail: true }
+          run 'cat ../gpg-keys.asc | gpg --import >/dev/null 2>&1'
         end
 
         after do
