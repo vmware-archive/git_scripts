@@ -62,11 +62,21 @@ module PivotalGitScripts
         author_details = extract_author_details_from_config(config, current_pair_initials)
         author_names = author_details.keys.map { |i| author_details[i][:name] }
         authors = pair_names(author_names)
-        author_email = random_author_email(author_details)
-        puts "Committing under #{author_email}"
-        passthrough_args =  argv.map{|arg| "'#{arg}'"}.join(' ')
+        author_details = random_author_details(author_details)
+        author_email = author_details[:email]
+        author_key = author_details[:key]
         env_variables = "GIT_AUTHOR_NAME='#{authors}' GIT_AUTHOR_EMAIL='#{author_email}' GIT_COMMITTER_NAME='#{authors}' GIT_COMMITTER_EMAIL='#{author_email}'"
-        system "#{env_variables} git commit #{passthrough_args}"
+
+        puts "Committing under #{author_email}"
+
+        unless author_key.nil?
+          argv << "--gpg-sign=#{author_key}"
+          puts "Signing with key #{author_key}"
+        end
+
+        args = argv.map{|arg| "'#{arg}'"}.join(' ')
+
+        system "#{env_variables} git commit #{args}"
       rescue GitPairException => e
         puts e.message
         exit 1
@@ -108,6 +118,8 @@ module PivotalGitScripts
           # include the following section to set custom email addresses for users
           #email_addresses:
           #  zr: zach.robinson@example.com
+          #gpg_keys:
+          #  zr: 1A2B3C4D
 
 
       By default this affects the current project (.git/config).<br/>
@@ -178,9 +190,9 @@ BANNER
         end
       end
 
-      def random_author_email(author_details)
+      def random_author_details(author_details)
         author_id = author_details.keys.sample
-        author_details[author_id][:email]
+        author_details[author_id]
       end
 
       def set_git_config(global, options)
@@ -227,9 +239,12 @@ BANNER
           email = read_custom_email_address_from_config(config, i)
           email ||= "#{email_id}@#{config['email']['domain']}"
 
+          key = read_gpg_keys_from_config(config, i)
+
           details[i] = {
             :name => full_name,
-            :email => email
+            :email => email,
+            :key => key
           }
         end
 
@@ -239,6 +254,11 @@ BANNER
       def read_custom_email_address_from_config(config, initial)
         return nil unless config['email_addresses']
         return config['email_addresses'][initial.downcase]
+      end
+
+      def read_gpg_keys_from_config(config, initial)
+        return nil unless config['gpg_keys']
+        return config['gpg_keys'][initial.downcase]
       end
 
       private
