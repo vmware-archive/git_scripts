@@ -80,6 +80,34 @@ describe "CLI" do
     end
   end
 
+  describe "project" do
+    before do
+      run "mkdir home/.ssh"
+      run "touch home/.ssh/config"
+      File.open("home/.ssh/config", "w") do |f|
+        f.write <<END
+Host github.com
+  User git
+  IdentityFile id_github_current
+END
+      end
+    end
+
+    it "links id_github_current" do
+      run "touch home/.ssh/id_github_bar"
+      run "git project bar"
+      run("git about").should =~ /GitHub project:\s+bar/
+    end
+
+    it "links id_github_current.pub" do
+      run "touch home/.ssh/id_github_lala"
+      run "touch home/.ssh/id_github_lala.pub"
+      run "git project lala"
+      expect(File.exists?("home/.ssh/id_github_current.pub")).to eq(true)
+      expect(File.readlink("home/.ssh/id_github_current.pub")).to eq("id_github_lala.pub")
+    end
+  end
+
   describe "pair" do
     def expect_config(result, name, initials, email, options={})
       global = "cd /tmp && " if options[:global]

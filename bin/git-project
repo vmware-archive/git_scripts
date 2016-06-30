@@ -24,6 +24,10 @@ Dir.chdir(File.expand_path('~/.ssh')) do
   possible_id_files.each do |id_file|
     if File.exists?(id_file)
       `ln -sf #{id_file} id_github_current`
+      pub_file = id_file + ".pub"
+      if File.exists?(pub_file)
+          `ln -sf #{pub_file} id_github_current.pub`
+      end
       puts "Now using key #{id_file}"
       check_ssh_config
       exit 0
