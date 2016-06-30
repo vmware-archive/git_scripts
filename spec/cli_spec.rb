@@ -345,6 +345,10 @@ describe "CLI" do
         (run "git log -1 --pretty=%ce").strip
       end
 
+      def committer_email_and_key_of_last_commit
+        (run "git log -1 --pretty='%ae %GK'").strip
+      end
+
       it "makes a commit" do
         git_pair_commit
         output = run "git log -1"
@@ -419,6 +423,62 @@ describe "CLI" do
             author_email_of_last_commit
           end.uniq
           emails.should =~ ['abb@the-host.com', 'test@other-host.com']
+        end
+      end
+
+      context 'when gpg keys are configured' do
+        before do
+          run 'cat ../gpg-keys.asc | gpg --import >/dev/null 2>&1'
+        end
+
+        after do
+
+        end
+
+        context 'when one of the pair has a key' do
+          before do
+            File.open('.pairs', 'a') do |pairs|
+              pairs.puts <<-YAML.unindent
+                  email_addresses:
+                    ab: abb@other-host.com
+                    bc: bcc@other-host.com
+                  gpg_keys:
+                    ab: 54E416F1
+              YAML
+            end
+
+            run 'git pair ab bc'
+          end
+
+          it 'uses that key with corresponding email' do
+            keys = 6.times.map do
+              git_pair_commit
+              committer_email_and_key_of_last_commit
+            end.uniq
+
+            keys =~ ['abb@other-host.com 54E416F1']
+          end
+
+          context 'when both pairs have a key' do
+            before do
+              File.open('.pairs', 'a') do |pairs|
+                pairs.puts <<-YAML.unindent
+                      bc: 4A000CE7
+                YAML
+              end
+
+              run 'git pair ab bc'
+            end
+
+            it 'uses both keys corresponding emails' do
+              keys = 6.times.map do
+                git_pair_commit
+                committer_email_and_key_of_last_commit
+              end.uniq
+
+              keys =~ ['abb@other-host.com 54E416F1', 'bcc@other-host.com 4A000CE7']
+            end
+          end
         end
       end
     end
