@@ -1,3 +1,4 @@
+require "fileutils"
 require "unindent"
 
 describe "CLI" do
@@ -22,15 +23,15 @@ describe "CLI" do
 
   around do |example|
     dir = "spec/tmp"
-    run "rm -rf #{dir}"
-    run "mkdir #{dir}"
+    FileUtils.rm_rf dir
+    FileUtils.mkdir dir
 
     # use fake home for .ssh hacks
-    run "mkdir #{dir}/home"
+    FileUtils.mkdir "#{dir}/home"
     ENV["HOME"] = File.absolute_path("#{dir}/home")
 
     Dir.chdir dir do
-      run "touch a"
+      FileUtils.touch 'a'
       run 'git init'
       run 'git add .'
       run 'git config user.email "rspec-tests@example.com"'
@@ -69,9 +70,9 @@ describe "CLI" do
 
     context "with github project" do
       before do
-        run "mkdir home/.ssh"
-        run "touch home/.ssh/id_github_foo"
-        run "ln -s home/.ssh/id_github_foo home/.ssh/id_github_current"
+        FileUtils.mkdir 'home/.ssh'
+        FileUtils.touch 'home/.ssh/id_github_foo'
+        FileUtils.ln_s 'home/.ssh/id_github_foo', 'home/.ssh/id_github_current'
       end
 
       it "finds a project" do
@@ -172,17 +173,17 @@ describe "CLI" do
       end
 
       it "fails when there is no .git in the tree" do
-        run "rm -f /tmp/pairs"
-        run "cp .pairs /tmp"
+        FileUtils.rm_f '/tmp/pairs'
+        FileUtils.cp '.pairs', '/tmp'
         Dir.chdir "/tmp" do
           result = run 'git pair ab 2>&1', :fail => true
           result.should include("Not a git repository (or any of the parent directories)")
         end
-        run "rm -f /tmp/pairs"
+        FileUtils.rm_f '/tmp/pairs'
       end
 
       it "finds .pairs file in lower parent folder" do
-        run "mkdir foo"
+        FileUtils.mkdir 'foo'
         Dir.chdir "foo" do
           result = run 'git pair ab'
           expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
@@ -257,15 +258,15 @@ describe "CLI" do
     context "without a .pairs file in the tree" do
       around do |example|
         Dir.chdir "/tmp" do
-          run "rm -f .pairs"
+          FileUtils.rm_f '.pairs'
           dir = "git_stats_test"
-          run "rm -rf #{dir}"
-          run "mkdir #{dir}"
+          FileUtils.rm_rf dir
+          FileUtils.mkdir dir
           Dir.chdir dir do
             run 'git init'
             example.run
           end
-          run "rm -rf #{dir}"
+          FileUtils.rm_rf dir
         end
       end
 
