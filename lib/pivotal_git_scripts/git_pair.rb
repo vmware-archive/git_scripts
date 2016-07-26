@@ -192,8 +192,8 @@ BANNER
       end
 
       def report_git_settings(git_dir, key)
-        global = `git config --global --get-regexp '^user\.#{key}'`
-        local = `git config -f #{git_dir}/config --get-regexp '^user\.#{key}'`
+        global = `git config --global --get-regexp "^user\.#{key}"`
+        local = `git config -f #{git_dir}/config --get-regexp "^user\.#{key}"`
         if global.length > 0 && local.length > 0
           puts "NOTE: Overriding global user.#{key} setting with local."
         end
