@@ -83,10 +83,12 @@ describe "CLI" do
 
   describe "pair" do
     def expect_config(result, name, initials, email, options={})
-      global = "cd /tmp && " if options[:global]
-      run("#{global}git config user.name").should == "#{name}\n"
-      run("#{global}git config user.initials").should == "#{initials}\n"
-      run("#{global}git config user.email").should == "#{email}\n"
+      dir = (options[:global] ? "/tmp" : ".")
+      Dir.chdir dir do
+        run("git config user.name").should == "#{name}\n"
+        run("git config user.initials").should == "#{initials}\n"
+        run("git config user.email").should == "#{email}\n"
+      end
 
       prefix = (options[:global] ? "global: " : "local:  ")
       result.should include "#{prefix}user.name #{name}"
@@ -95,8 +97,10 @@ describe "CLI" do
     end
 
     def git_config_value(name, global = false)
-      global_prefix = "cd /tmp && " if global
-      `#{global_prefix}git config user.#{name}`
+      dir = (global ? "/tmp" : ".")
+      Dir.chdir dir do
+        `git config user.#{name}`
+      end
     end
 
     it "prints help" do
