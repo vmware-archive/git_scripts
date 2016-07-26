@@ -31,40 +31,40 @@ describe "CLI" do
 
     Dir.chdir dir do
       run "touch a"
-      run "git init"
-      run "git add ."
-      run "git config user.email 'rspec-tests@example.com'"
-      run "git config user.name 'rspec test suite'"
-      run "git commit -am 'initial'"
-      run "git config --unset user.email"
-      run "git config --unset user.name"
+      run 'git init'
+      run 'git add .'
+      run 'git config user.email "rspec-tests@example.com"'
+      run 'git config user.name "rspec test suite"'
+      run 'git commit -am "initial"'
+      run 'git config --unset user.email'
+      run 'git config --unset user.name'
       example.run
     end
   end
 
   describe "about" do
     it "lists the user" do
-      run "git config user.name NAME"
-      run("git about").should =~ /git user:\s+NAME/
+      run 'git config user.name NAME'
+      run('git about').should =~ /git user:\s+NAME/
     end
 
     it "lists the user as NONE if there is none" do
-      run "git config user.name ''"
-      run("git about").should =~ /git user:\s+NONE/
+      run 'git config user.name ""'
+      run('git about').should =~ /git user:\s+NONE/
     end
 
     it "lists the email" do
-      run "git config user.email EMAIL"
-      run("git about").should =~ /git email:\s+EMAIL/
+      run 'git config user.email EMAIL'
+      run('git about').should =~ /git email:\s+EMAIL/
     end
 
     it "lists the email as NONE if there is none" do
-      run "git config user.email ''"
-      run("git about").should =~ /git email:\s+NONE/
+      run 'git config user.email ""'
+      run('git about').should =~ /git email:\s+NONE/
     end
 
     it "does not find a project" do
-      run("git about").should =~ /GitHub project:\s+NONE/
+      run('git about').should =~ /GitHub project:\s+NONE/
     end
 
     context "with github project" do
@@ -75,7 +75,7 @@ describe "CLI" do
       end
 
       it "finds a project" do
-        run("git about").should =~ /GitHub project:\s+foo/
+        run('git about').should =~ /GitHub project:\s+foo/
       end
     end
   end
@@ -99,12 +99,12 @@ describe "CLI" do
     end
 
     it "prints help" do
-      result = run "git-pair --help"
+      result = run 'git-pair --help'
       result.should include("Configures git authors when pair programming")
     end
 
     it "prints version" do
-      result = run "git pair --version"
+      result = run 'git pair --version'
       result.should =~ /\d+\.\d+\.\d+/
     end
 
@@ -125,20 +125,20 @@ describe "CLI" do
       describe "global" do
         it "sets pairs globally when global: true is set" do
           write ".pairs", File.read(".pairs") + "\nglobal: true"
-          result = run "git pair ab"
+          result = run 'git pair ab'
           expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com", :global => true
         end
 
         it "sets pairs globally when --global is given" do
-          result = run "git pair ab --global"
+          result = run 'git pair ab --global'
           result.should include "global: user.name Aa Bb"
           expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com", :global => true
         end
 
         it "unsets global config when no argument is passed" do
-          run "git pair ab --global"
-          run "git pair ab"
-          result = run "git pair --global"
+          run 'git pair ab --global'
+          run 'git pair ab'
+          result = run 'git pair --global'
           #result.should include "Unset --global user.name, user.email and user.initials"
           expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
           result.should_not include("global:")
@@ -146,28 +146,28 @@ describe "CLI" do
       end
 
       it "can set a single user as pair" do
-        result = run "git pair ab"
+        result = run 'git pair ab'
         expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
       end
 
       it "can set a 2 users as pair" do
-        result = run "git pair ab bc"
+        result = run 'git pair ab bc'
         expect_config result, "Aa Bb and Bb Cc", "ab bc", "the-pair+aa+bb@the-host.com"
       end
 
       it "can set n users as pair" do
-        result = run "git pair ab bc cd"
+        result = run 'git pair ab bc cd'
         expect_config result, "Aa Bb, Bb Cc and Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
       end
 
       it "prints names, email addresses, and initials in alphabetical order" do
-        result = run "git pair ab cd bc"
+        result = run 'git pair ab cd bc'
         expect_config result, "Aa Bb, Bb Cc and Cc Dd", "ab bc cd", "the-pair+aa+bb+cc@the-host.com"
       end
 
       it "can set a user with apostrophes as pair" do
         write ".pairs", File.read(".pairs").sub("Aa Bb", "Pete O'Connor")
-        result = run "git pair ab"
+        result = run 'git pair ab'
         expect_config result, "Pete O'Connor", "ab", "the-pair+pete@the-host.com"
       end
 
@@ -175,7 +175,7 @@ describe "CLI" do
         run "rm -f /tmp/pairs"
         run "cp .pairs /tmp"
         Dir.chdir "/tmp" do
-          result = run "git pair ab 2>&1", :fail => true
+          result = run 'git pair ab 2>&1', :fail => true
           result.should include("Not a git repository (or any of the parent directories)")
         end
         run "rm -f /tmp/pairs"
@@ -184,15 +184,15 @@ describe "CLI" do
       it "finds .pairs file in lower parent folder" do
         run "mkdir foo"
         Dir.chdir "foo" do
-          result = run "git pair ab"
+          result = run 'git pair ab'
           expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
         end
       end
 
       it "unsets local config when no argument is passed" do
-        run "git pair ab --global"
-        run "git pair bc"
-        result = run "git pair"
+        run 'git pair ab --global'
+        run 'git pair bc'
+        result = run 'git pair'
         result.should include "Unset user.name, user.email, user.initials"
         expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com", :global => true
         result.should_not include("local:")
@@ -200,7 +200,7 @@ describe "CLI" do
 
       it "uses hard email when given" do
         write ".pairs", File.read(".pairs").sub(/email:.*/m, "email: foo@bar.com")
-        result = run "git pair ab"
+        result = run 'git pair ab'
         expect_config result, "Aa Bb", "ab", "foo@bar.com"
       end
 
@@ -210,19 +210,19 @@ describe "CLI" do
         end
 
         it "doesn't set email" do
-          run "git pair ab"
+          run 'git pair ab'
           git_config_value('email').should be_empty
         end
 
         it "doesn't report about email" do
-          result = run "git pair ab"
+          result = run 'git pair ab'
           result.should_not include "email"
         end
       end
 
       it "uses no email prefix when only host is given" do
         write ".pairs", File.read(".pairs").sub(/email:.*/m, "email:\n  domain: foo.com")
-        result = run "git pair ab"
+        result = run 'git pair ab'
         expect_config result, "Aa Bb", "ab", "aa@foo.com"
       end
 
@@ -232,24 +232,24 @@ describe "CLI" do
         end
 
         it "uses no email prefix for single developers" do
-          result = run "git pair ab"
+          result = run 'git pair ab'
           expect_config result, "Aa Bb", "ab", "aa@foo.com"
         end
 
         it "uses email prefix for multiple developers" do
-          result = run "git pair ab bc"
+          result = run 'git pair ab bc'
           expect_config result, "Aa Bb and Bb Cc", "ab bc", "pairs+aa+bb@foo.com"
         end
       end
 
       it "fails with unknown initials" do
-        result = run "git pair xx", :fail => true
+        result = run 'git pair xx', :fail => true
         result.should include("Couldn't find author name for initials: xx")
       end
 
       it "uses alternate email prefix" do
         write ".pairs", File.read(".pairs").sub(/ab:.*/, "ab: Aa Bb; blob")
-        result = run "git pair ab"
+        result = run 'git pair ab'
         expect_config result, "Aa Bb", "ab", "the-pair+blob@the-host.com"
       end
     end
@@ -262,7 +262,7 @@ describe "CLI" do
           run "rm -rf #{dir}"
           run "mkdir #{dir}"
           Dir.chdir dir do
-            run "git init"
+            run 'git init'
             example.run
           end
           run "rm -rf #{dir}"
@@ -271,11 +271,11 @@ describe "CLI" do
 
       context "and without a .pairs file in the home directory" do
         it "fails if it cannot find a pairs file" do
-          run "git pair ab", :fail => true
+          run 'git pair ab', :fail => true
         end
 
         it "prints instructions" do
-          result = run "git pair ab", :fail => true
+          result = run 'git pair ab', :fail => true
           result.should include("Could not find a .pairs file. Create a YAML file in your project or home directory.")
         end
       end
@@ -300,7 +300,7 @@ describe "CLI" do
         end
 
         it "loads the file" do
-          result = run "git pair ab"
+          result = run 'git pair ab'
           expect_config result, "Aa Bb", "ab", "the-pair+aa@the-host.com"
         end
       end
@@ -326,34 +326,34 @@ describe "CLI" do
 
     context 'when a pair has been set' do
       before do
-        run "git pair ab cd"
+        run 'git pair ab cd'
       end
 
       def author_name_of_last_commit
-        (run "git log -1 --pretty=%an").strip
+        (run 'git log -1 --pretty=%an').strip
       end
 
       def author_email_of_last_commit
-        (run "git log -1 --pretty=%ae").strip
+        (run 'git log -1 --pretty=%ae').strip
       end
 
       def committer_name_of_last_commit
-        (run "git log -1 --pretty=%cn").strip
+        (run 'git log -1 --pretty=%cn').strip
       end
 
       def committer_email_of_last_commit
-        (run "git log -1 --pretty=%ce").strip
+        (run 'git log -1 --pretty=%ce').strip
       end
 
       it "makes a commit" do
         git_pair_commit
-        output = run "git log -1"
+        output = run 'git log -1'
         output.should include("Pair pare pear")
       end
 
       it "sets the author name to the pair's names" do
         git_pair_commit
-        output = run "git log -1 --pretty=%an"
+        output = run 'git log -1 --pretty=%an'
         output.strip.should eq("Aa Bb and Cc Dd")
       end
 
@@ -371,7 +371,7 @@ describe "CLI" do
           run 'git pair ab bc'
           run 'git pair-commit --amend -C HEAD --reset-author'
 
-          output = run "git log -1 --pretty=%an"
+          output = run 'git log -1 --pretty=%an'
           output.strip.should eq("Aa Bb and Bb Cc")
         end
       end
@@ -379,8 +379,8 @@ describe "CLI" do
       context 'when the pair is set globally and the local repo has custom user name and email' do
         before do
           run 'git pair --global ab cd'
-          run "git config user.name 'Betty White'"
-          run "git config user.email 'betty@example.com'"
+          run 'git config user.name "Betty White"'
+          run 'git config user.email "betty@example.com"'
         end
 
         it 'still makes the commit with the correct user name' do
