@@ -83,7 +83,7 @@ describe "CLI" do
 
   describe "pair" do
     def expect_config(result, name, initials, email, options={})
-      dir = (options[:global] ? "/tmp" : ".")
+      dir = (options[:global] ? Dir.tmpdir : ".")
       Dir.chdir dir do
         run("git config user.name").should == "#{name}\n"
         run("git config user.initials").should == "#{initials}\n"
@@ -97,7 +97,7 @@ describe "CLI" do
     end
 
     def git_config_value(name, global = false)
-      dir = (global ? "/tmp" : ".")
+      dir = (global ? Dir.tmpdir : ".")
       Dir.chdir dir do
         `git config user.#{name}`
       end
@@ -177,13 +177,13 @@ describe "CLI" do
       end
 
       it "fails when there is no .git in the tree" do
-        FileUtils.rm_f '/tmp/pairs'
-        FileUtils.cp '.pairs', '/tmp'
-        Dir.chdir "/tmp" do
+        FileUtils.rm_f File.join(Dir.tmpdir, 'pairs')
+        FileUtils.cp '.pairs', Dir.tmpdir
+        Dir.chdir Dir.tmpdir do
           result = run 'git pair ab 2>&1', :fail => true
           result.should include("Not a git repository (or any of the parent directories)")
         end
-        FileUtils.rm_f '/tmp/pairs'
+        FileUtils.rm_f File.join(Dir.tmpdir, 'pairs')
       end
 
       it "finds .pairs file in lower parent folder" do
@@ -261,7 +261,7 @@ describe "CLI" do
 
     context "without a .pairs file in the tree" do
       around do |example|
-        Dir.chdir "/tmp" do
+        Dir.chdir Dir.tmpdir do
           FileUtils.rm_f '.pairs'
           dir = "git_stats_test"
           FileUtils.rm_rf dir
