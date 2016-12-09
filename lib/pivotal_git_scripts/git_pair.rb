@@ -2,6 +2,7 @@ require "pivotal_git_scripts/version"
 require 'yaml'
 require 'optparse'
 require 'pathname'
+require_relative 'use_cases/git_pair'
 
 module PivotalGitScripts
   module GitPair
@@ -15,8 +16,6 @@ module PivotalGitScripts
       runner.commit(argv)
     end
 
-    class GitPairException < Exception; end
-
     class Runner
       def main(argv)
         git_dir = `git rev-parse --git-dir`.chomp
@@ -27,19 +26,12 @@ module PivotalGitScripts
         config = read_pairs_config
         global = !!(options[:global] || config["global"])
 
-        if initials.any?
-          author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
-          authors = pair_names(author_names)
-          git_config = {:name => authors,  :initials => initials.sort.join(" ")}
-          git_config[:email] = build_email(email_ids, config["email"]) unless no_email(config)
-          set_git_config global,  git_config
-        else
-          git_config = {:name => nil,  :initials => nil}
-          git_config[:email] = nil unless no_email(config)
-          set_git_config global, git_config
-          puts "Unset#{' global' if global} user.name, #{'user.email, ' unless no_email(config)}user.initials"
-        end
-
+        UseCases::GitPair.apply(
+          :initials => initials,
+          :git      => ->(cfg) { set_git_config global, cfg },
+          :config   => config,
+          :global   => global)
+        
         [:name, :email, :initials].each do |key|
           report_git_settings(git_dir, key)
         end
@@ -169,15 +161,6 @@ BANNER
         end
       end
 
-      def build_email(emails, config)
-        if config.is_a?(Hash)
-          prefix = config['prefix'] if !config['no_solo_prefix'] or emails.size > 1
-          "#{([prefix] + emails).compact.join('+')}@#{config['domain']}"
-        else
-          config
-        end
-      end
-
       def random_author_email(author_details)
         author_id = author_details.keys.sample
         author_details[author_id][:email]
@@ -199,20 +182,6 @@ BANNER
         end
         puts "global: #{global}" if global.length > 0
         puts "local:  #{local}" if local.length > 0
-      end
-
-      def extract_author_names_and_email_ids_from_config(config, initials)
-        authors = read_author_info_from_config(config, initials)
-        authors.sort!.uniq! # FIXME
-        authors.map do |a|
-          full_name, email_id = a.split(";").map(&:strip)
-          email_id ||= full_name.split(' ').first.downcase
-          [full_name, email_id]
-        end.transpose
-      end
-
-      def no_email(config)
-        !config.key? 'email'
       end
 
       def extract_author_details_from_config(config, initials)
