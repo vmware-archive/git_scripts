@@ -26,6 +26,14 @@ module PivotalGitScripts
         initials = argv
         config = read_pairs_config
         global = !!(options[:global] || config["global"])
+        amend_author = !!(options[:amend_author])
+
+        if amend_author
+          raise GitPairException, 'Error: No pair set. Please set your pair with `git pair --amend-author ...`' if initials.empty?
+
+          amend_author_from_last_commit(config, initials)
+          exit 1
+        end
 
         if initials.any?
           author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
@@ -113,9 +121,14 @@ module PivotalGitScripts
       By default this affects the current project (.git/config).<br/>
       Use the `--global` option or add `global: true` to your `.pairs` file to set the global git configuration for all projects (~/.gitconfig).
 
+      Use the `--amend-author` followed by the new author initial(s) to modify the authors of the last commit:
+
+          git pair --amend-author sy bc
+
       Options are:
 BANNER
           opts.on("-g", "--global", "Modify global git options instead of local") { options[:global] = true }
+          opts.on("-a", "--amend-author", "Amend author of last commit") { options[:amend_author] = true }
           opts.on("-v", "--version", "Show Version") do
             puts PivotalGitScripts::VERSION
             exit
@@ -239,6 +252,16 @@ BANNER
       def read_custom_email_address_from_config(config, initial)
         return nil unless config['email_addresses']
         return config['email_addresses'][initial.downcase]
+      end
+
+      def amend_author_from_last_commit(config, initials)
+        author_names, email_ids = extract_author_names_and_email_ids_from_config(config, initials)
+        pair_author = pair_names(author_names)
+        pair_email = build_email(email_ids, config)
+        pair_prefix = config['email']['prefix']
+        pair_domain = config['email']['domain']
+
+        system(%Q{git commit --amend --author="#{pair_author} <#{pair_prefix}+#{pair_email}#{pair_domain}>"})
       end
 
       private
